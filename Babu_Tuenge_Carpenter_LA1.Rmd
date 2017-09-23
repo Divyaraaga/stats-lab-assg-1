@@ -1,0 +1,329 @@
+---
+title: "Candidate Debt Exploration"
+author: "Divya"
+date: "17 September 2017"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+As a member of the campaign committee for an upcoming election, you are interested in knowing as much as possible about debt reported by candidates in previous elections. Using the monthly voter registration statistics for registered voters in Oregon from 2012, perform an exploratory analysis to help the agency address their goals.
+
+Perform an exploratory analysis to understand 
+\begin{center}
+How campaign characteristics are related to the candidates debt. 
+\end{center}
+
+Dataset on voter registration from 2012 **"CandidateDebt.csv"**.  
+The dependent (or target) variable in this data is named "amount".
+
+The labels of some of the variables are listed below; the rest of the variables should be self-explanatory.
+
+**id **:  internal identifier that corresponds to a single expenditure record. <br />
+**reportnumber** : identifier used for tracking the individual form. <br />
+**origin** : This field shows from which filed report-type the data originates. <br />
+**filerid** : The unique id assigned to a candidate.  <br />
+**filertype** : Indicates if this record is for a candidate. <br />
+**filername**: The candidate or committee name as reported on the candidates registration. <br />
+**firstname** : This field represents the first name, as reported by the filer. <br />
+**middleinitial** : This field represents the middle initial, as reported by the filer. <br />
+**lastname**: This field represents the last name, as reported by the filer. <br />
+**office** : The office sought by the candidate. <br />
+**position** : The position associated with an office. <br />
+**legislativedistrict** : The Washington State legislative district. <br />
+**was_party**: Should get the value from ryan . <br />
+**party** : The political party as declared by the candidate on their registration. <br />
+**jurisdiction** : The political jurisdiction associated with the office of a candidate. <br />
+**jurisdictioncounty **: The county associated with the jurisdiction of a candidate.
+**jurisdictiontype** : The type of jurisdiction this office is: Statewide, Local, etc. <br />
+**electionyear** : The election year in the case of candidates. <br />
+**amount** : The amount of the debt incurred or order placed. <br />
+**recordtype** : This field designates the item as a debt. <br />
+**fromdate** : The start date of the period for the report on which this debt record was reported.  <br />
+**thrudate** : The end date of the period for the report on which this debt record was reported.  <br />
+**debtdate** : The date that the debt was incurred.  <br />
+**code** :The type of debt.  <br />
+**description** : The reported description of the transaction.  <br />
+**vendorname** : The name of the vendor or recipient???s name.  <br />
+**vendoraddress** : The street address of the vendor or recipient.  <br />
+**vendorcity** : The city of the vendor or recipient.  <br />
+**vendorstate **: The state of the vendor or recipient.  <br />
+**vendorzip **: The zip code of the vendor or recipient.  <br />
+
+Perform an exploratory analysis to understand how campaign characteristics are related to the candidates debt. 
+
+### Setup
+
+First, Load the car library, which gives us a convenient scatterplotMatrix function.
+
+```{r car}
+setwd("~/Desktop/UCB_DataScience/Statistics/stats-lab-assgn")
+getwd() 
+
+#install.packages("FSA")
+#install.packages("ggplot2")
+#install.packages("randomcoloR")
+
+#library(car)
+#library(ggplot2)
+```
+
+#### Load the dataset found in the file, **"CandidateDebt.csv"**
+
+```{r load}
+cdebt_all = read.csv("CandidateDebtFixed.csv", stringsAsFactors = T, na.strings=c(NA,"NA","#N/A" ,"", " "))
+```
+
+
+#### Describe your data set. 
+
+The data sample is mostly Qualitative categorical except the amount variable
+
+1. How many observations are there?
+```{r observations}
+nrow(cdebt_all)
+```
+
+2. What types of variables does it contain? 
+
+```{r variables}
+str(cdebt_all)
+```
+
+
+#### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential issues.
+
+1. We were given a CSV which had a column and data mismatch at column L , 
+   We created a new variable called "office2" next to office and moved the columns from legislativedistrict to left
+   
+2. The Data contains blank values and NA values in the form of "#N/A" , 
+   So we loaded the data from csv by converting all these values to NA
+```{r allrightNAs}
+summary(cdebt_all)
+```
+
+3. At the first glance , The dataset contains few variables which does not contribute much to the analysis 
+    1. reportnumber : Unique value does not conribute for analysis
+    2. origin  : The column value is same for all the rows
+```{r origin}
+summary(cdebt_all$origin)
+``` 
+    3. filertype : The column value is same for all the rows 
+```{r filertype}
+summary(cdebt_all$filertype)
+``` 
+    4. filername, firstname, middleinitial, lastname:
+       filerid can act on behalf of all these 4 variables
+    5. vendoraddress , vendorcity ,vendorstate , vendorzip: 
+       vendorname can act on behalf of all these variables
+    6. electionyear: The column value is either 2012 or NA
+```{r electionyear}
+summary(cdebt_all$electionyear)
+``` 
+    7. recordtype :  The column value is either DEBT or NA
+```{r recordtype}
+summary(cdebt_all$recordtype)
+``` 
+
+#### Explain whether any data processing or preparation is required for your data set.
+
+
+## Exploratory Analysis
+
+## Scatterplot Matrix
+When we have a large number of variables, we often begin with a scatterplot matrix. This is helpful for getting a high-level overview of the relationships between our variables and can draw our attention to important features we want to investigate further.
+
+[Divya] : Guess these scatterplots are not relevant to categorical variables , the below would be considered as chart junk
+
+```{r relationships}
+
+scatterplotMatrix( ~ filerid + legislativedistrict + position + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for filer id and int Variables wrt Debt ")
+
+scatterplotMatrix( ~ office + office2 + party  + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix wrt Debt ")
+
+scatterplotMatrix( ~ jurisdiction + jurisdictioncounty + jurisdictiontype  + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for jurisdiction wrt Debt ")
+
+#scatterplotMatrix( ~ fromdate + thrudate +  debtdate + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for next 3 Key Variables wrt Amount")
+
+scatterplotMatrix(~ code + description + vendorname  + amount , data= cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix type of Debt")
+
+```
+
+
+Since we are trying to understand how campaign characteristics are related to the candidates debt, we look into the last row and last column where amount represents the x-axis and the other int or num variables represent the y-axis.
+
+We noticed the following relationship between medv and the other variables:
+ * filerid  : We noticed that The filerid and amount dont have any obvious relationship
+ * legislativedistrict : We noticed that legislative district has categorical values , which indicate no obvious relationship with amount
+ * position : There is some relationship , should evaluate ???
+ 
+### Univariate Analysis of Key Variables (20 pts)
+
+#### Examine target variable : amount
+```{r amount}
+length(cdebt_all$amount)
+```
+
+```{r}
+summary(cdebt_all$amount)
+```
+
+We notice that amount seems to take on number, nonnegative values, as we would expect.
+Next, we create a histogram of amount.
+
+```{r}
+#histinfo<-hist(cdebt_all$amount)
+#histinfo
+hist(cdebt_all$amount,main = "Histogram of amount Variable",  border="black", col="#00A5DF", xlab = "amount")
+
+```
+
+##### ANALYSIS
+
+Most of the debt is around 0 to 6000 $ 
+
+#### Examine target variable : filerid 
+
+```{r margins}
+#Sets outside margins : b, l, t, r 
+par(oma= c(2,1,5,2) + 0.1)
+
+#Sets plot margins
+par(mar = c(4,1,5,1))
+
+```
+
+```{r filername}
+summary(cdebt_all$filerid)
+```
+
+```{r}
+filerid <- table(cdebt_all$filerid)
+
+#Sets plot margins : b, l, t, r 
+par(las=1, mar=c(2.5,8,0.5, 0.3))
+
+barplot(filerid[order(filerid)], horiz = TRUE , las = 1, col = "#00A5DF", cex.names=0.4, main ="Debts wrt to Filers" , xlab="Number of debts", space = 0.05)
+
+?barplot
+```
+
+#####ANALYSIS
+
+Debt wrt to filers is  and amount is  distributed. So the relationship between 
+
+
+#### Examine target variable : office 
+
+```{r}
+summary(cdebt_all$office)
+```
+
+```{r office}
+#qplot(cdebt_all$office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
+
+office <- table(cdebt_all$office)
+#Sets plot margins : b, l, t, r 
+par(las=1, mar=c(2.5,8,2, 0.3))
+
+barplot(office[order(office)], horiz = TRUE , las = 1, main ="Debts wrt to Filer's office" , xlab="Number of debts" ,cex.names=0.5 , col = terrain.colors(16)) 
+
+# [order(office)]
+
+```
+##### Univariate Analysis
+
+We notice that from the above graph more number of debts are by filers 
+from the office of state representatives.
+
+Next we would look at the relationship between the office sought by the candidate and the amount of debt incurred or order placed
+
+#### Examine the relationships between office and Debt Amount
+
+```{r amountvsoffice}
+
+#Sets outside margins : b, l, t, r 
+par(las=1, mar=c(10,4,2,0.3))
+
+boxplot(cdebt_all$amount ~ office, data = cdebt_all, cex.axis = .6, log='y',
+main = " Debt distirbution wrt to office" , las=2 , col = "#DDA266")
+  
+?boxplot
+
+var(cdebt_all$amount, na.rm = TRUE) 
+
+?var
+
+#ggplot(cdebt_all, aes(x=cdebt_all$amount, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
+
+```
+
+
+```{r}
+summary(cdebt_all$amount)
+```
+##### Bivariate Analysis
+
+1. We noticed though state representative has more number of debts , but
+   the total amount is between $5 to $1000 with the maximum debt amount between $300 and $750 
+   in the interquartile region
+
+2. Median of the debt amount is at $300 as confirmed by the boxplots
+
+3. The boxplots indicate that the debt amounts are almost around the same interquartile region
+   which means that the debt amount for all the candidates are in the same range irrespective of their served offices 
+
+
+#### Examine target variable : party 
+
+```{r}
+summary(cdebt_all$party)
+```
+
+```{r party}
+#qplot(cdebt_all$was_office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
+
+party <- table(cdebt_all$party)
+
+#Sets plot margins : b, l, t, r 
+par(las=1, mar=c(2.5,7,2, 0.3))
+
+barplot(party[order(party)], horiz = TRUE , las = 1, main ="Debts wrt to Filer's Party" , xlab="Number of debts" , cex.names= 0.9 , col = rainbow(16) ) 
+
+#party.levels()
+#length(party =="INDEPENDENT")
+
+```
+
+##### Univariate Analysis
+
+We notice that maximum number of debt files are from Democrats and republicans
+
+#### Examine the relationships between party and Debt Amount
+
+```{r partyvspart}
+
+#Sets outside margins : b, l, t, r 
+par(las=1, mar=c(5,4,2,0.3))
+
+boxplot(cdebt_all$amount ~ party, data = cdebt_all, cex.axis = .6, log='y',
+main = " Debt distirbution wrt to party" , las=2 , col = "#BA554C")
+  
+?boxplot
+
+#ggplot(cdebt_all, aes(x=cdebt_all$party, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
+
+```
+
+##### Bivariate Analysis
+
+1. We notice that Democrats and Non partisan parties have contributed to
+   most of the debt amount
+
+2. Republican party has some outliers 

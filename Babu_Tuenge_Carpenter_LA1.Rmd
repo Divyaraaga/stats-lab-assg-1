@@ -1,6 +1,6 @@
 ---
 title: "Candidate Debt Exploration"
-author: "Divya and Jason"
+author: "Divya"
 date: "17 September 2017"
 output:
   word_document: default
@@ -104,6 +104,7 @@ str(cdebt_all)
 
 
 #### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential issues.
+#### Explain whether any data processing or preparation is required for your data set.
 
 1. We were given a CSV which had a column and data mismatch at column L , 
    We created a new variable called "office2" next to office variable and moved the columns from legislativedistrict towards left
@@ -113,31 +114,28 @@ str(cdebt_all)
 ```{r allrightNAs}
 summary(cdebt_all)
 ```
-
 3. At the first glance , The dataset contains few variables which does not contribute much to the analysis 
-    1. reportnumber : Unique value does not conribute for analysis
-    2. origin  : The column value is same for all the rows
+    * reportnumber : Unique value does not conribute to analysis
+    * origin  : The column value is same for all the rows
 ```{r origin}
 summary(cdebt_all$origin)
 ``` 
-    3. filertype : The column value is same for all the rows 
+    * filertype : The column value is same for all the rows 
 ```{r filertype}
 summary(cdebt_all$filertype)
 ``` 
-    4. filername, firstname, middleinitial, lastname:
+    * filername, firstname, middleinitial, lastname:
        filerid can act on behalf of all these 4 variables
-    5. vendoraddress , vendorcity ,vendorstate , vendorzip: 
+    * vendoraddress , vendorcity ,vendorstate , vendorzip: 
        vendorname can act on behalf of all these variables
-    6. electionyear: The column value is either 2012 or NA
+    * electionyear: The column value is either 2012 or NA
 ```{r electionyear}
 summary(cdebt_all$electionyear)
 ``` 
-    7. recordtype :  The column value is either DEBT or NA
+    * recordtype :  The column value is either DEBT or NA
 ```{r recordtype}
 summary(cdebt_all$recordtype)
 ``` 
-
-#### Explain whether any data processing or preparation is required for your data set.
 
 ## Exploratory Analysis
 
@@ -154,16 +152,17 @@ When we have a large number of variables, we often begin with a scatterplot matr
 
 scatterplotMatrix( ~ filerid + legislativedistrict + position + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for filer id and int Variables wrt Debt ")
 
-scatterplotMatrix( ~ office + office2 + party  + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix wrt Debt ")
+#scatterplotMatrix( ~ office + office2 + party  + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix wrt Debt ")
 
-scatterplotMatrix( ~ jurisdiction + jurisdictioncounty + jurisdictiontype  + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for jurisdiction wrt Debt ")
+#scatterplotMatrix( ~ jurisdiction + jurisdictioncounty + jurisdictiontype  + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for jurisdiction wrt Debt ")
 
 #scatterplotMatrix( ~ fromdate + thrudate +  debtdate + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for next 3 Key Variables wrt Amount")
 
-scatterplotMatrix(~ code + description + vendorname  + amount , data= cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix type of Debt")
+#scatterplotMatrix(~ code + description + vendorname  + amount , data= cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix type of Debt")
 
 ```
 
+[Divya] : Jason Delete the below
 
 Since we are trying to understand how campaign characteristics are related to the candidates debt, we look into the last row and last column where amount represents the x-axis and the other categorical variables represent the y-axis.
 
@@ -172,8 +171,9 @@ We noticed the following relationship between amount and the other variables:
  * legislativedistrict : We noticed that legislative district has categorical values , which indicate no obvious relationship with amount
  * position : There is some relationship , should evaluate ???
  
-### Univariate Analysis of Key Variables (20 pts)
+### Univariate Analysis of Key Variables
 
+[Divya] : Just notes
 Now we need define what are the variables that define our campaign characteristics
 Looking at the data the variables are (wrt to amount)
 
@@ -194,8 +194,8 @@ Total Amount of Debt by Party, Mean Debt by Party
 Total Amount of Debt by Office and Party combo, Mean amount of debt by Office and Party Combo
 Debt by Area (County)
 
-
 #### Examine target variable : amount (Debt Amount)
+
 ```{r amount}
 length(cdebt_all$amount)
 ```
@@ -207,88 +207,30 @@ summary(cdebt_all$amount)
 We notice that amount seems to take on number, nonnegative values, as we would expect.
 Next, we create a histogram of amount.
 
-```{r}
-#histinfo<-hist(cdebt_all$amount)
-#histinfo
-hist(cdebt_all$amount,main = "Histogram of amount Variable",  border="black", col="#00A5DF", xlab = "amount")
-?hist
-
-# Should set breakpoints
-
-```
-
 Most of the debt amount varies between 0 to 2000 $.
 Debt amount distribution is positively skewed.
 
-#### Examine the target variable : amount wrt to Party
-
-Lets first examine Total Amount wrt to Party
-
 ```{r}
+hist(cdebt_all$amount,main = "Histogram of amount Variable",  border="black", col="#00A5DF", xlab = "amount")
+?hist
 
-party <- table(cdebt_all$party)
-
-summary(party)
-amount_sum = tapply(cdebt_all$amount, cdebt_all$party, FUN=sum)
-amount_sum
+# Divya : Should set breakpoints
 ```
 
-```{r totalDebtVsParty}
+#### Examine talk about Party
+
+```{r party}
 #qplot(cdebt_all$was_office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
 
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,2,0.3))
-
-barplot(amount_sum[order(amount_sum)], horiz = TRUE , las = 1, main ="Total Debt wrt to Party" , xlab="Total Debt" ,cex.axis = .9 ,cex.names= 0.9 , col = rainbow(16) )
-
-#party.levels()
-#length(party =="INDEPENDENT")
-
-```
-
-We notice that the maximum amout of debt is incurred by Democrats and republicans
-
-To better assess this relationship, we will plot the mean amount
-for each party.  We can use a by statement to get the means.
-
-```{r meanAmountVsParty}
+party <- table(cdebt_all$party)
+summary(party)
 
 #Sets outside margins : b, l, t, r 
 par(las=1, mar=c(5,10,2,0.3))
 
-amount_means = by(cdebt_all$amount, cdebt_all$party,  mean)
-amount_means
-
-#ggplot(cdebt_all, aes(x=cdebt_all$party, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
-barplot(amount_means[order(amount_means)], horiz = TRUE , las = 1, main ="Mean Debt wrt to Party" , xlab="Mean Debt" ,cex.axis = .9 ,cex.names= 0.9 , col = rainbow(16) ) 
+barplot(party[order(party)], horiz = TRUE , las = 1, main ="No of Debts wrt Party" , xlab="No of Debts" ,cex.axis = .9 ,cex.names= 0.9 , col = rainbow(16) )
 
 ```
-
-Let's check the distribution of debt amount through a boxplot 
-
-```{r debtDistriVsParty}
-
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,4,2,0.3))
-
-boxplot(cdebt_all$amount ~ party, data = cdebt_all, cex.axis = .6, log='y',
-main = " Debt distirbution wrt to party" , las=2 , col = "#BA554C")
-  
-?boxplot
-
-#ggplot(cdebt_all, aes(x=cdebt_all$party, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
-
-```
-
-1. We notice that Democrats and Non partisan parties have contributed to
-   most of the debt amount
-
-2. Republican party has some outliers 
-
-3. Though there are more no of debts for republicans the amount of debt is distributed around 450$
-   R code to show the amount of debt
-   
-   
 #### Examine target variable : office 
 
 ```{r}
@@ -311,6 +253,72 @@ barplot(office[order(office)], horiz = TRUE , las = 1, main ="Debts wrt to Filer
 We notice that from the above graph more number of debts are by filers 
 from the office of state representatives.
 
+
+## Analysis of Key Relationships  : Bivariate Analysis
+
+#### Examine the target variable : Amount wrt to Party
+
+Lets first examine Total Amount wrt to Party :
+
+We notice that the maximum amount of debt is incurred by Democrats and republicans
+
+```{r amount_sum}
+amount_sum = tapply(cdebt_all$amount, cdebt_all$party, FUN=sum)
+amount_sum
+```
+
+```{r totalDebtVsParty}
+#qplot(cdebt_all$was_office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
+
+#Sets outside margins : b, l, t, r 
+par(las=1, mar=c(5,10,2,0.3))
+
+barplot(amount_sum[order(amount_sum)], horiz = TRUE , las = 1, main ="Total Debt wrt to Party" , xlab="Total Debt" ,cex.axis = .9 ,cex.names= 0.9 , col = rainbow(16) )
+
+# display in K
+
+```
+
+To better assess this relationship, we will plot the mean amount
+for each party.  We can use a by statement to get the means.
+
+```{r meanAmountVsParty}
+
+#Sets outside margins : b, l, t, r 
+par(las=1, mar=c(5,10,2,0.3))
+
+amount_means = by(cdebt_all$amount, cdebt_all$party,  mean)
+amount_means
+
+#ggplot(cdebt_all, aes(x=cdebt_all$party, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
+barplot(amount_means[order(amount_means)], horiz = TRUE , las = 1, main ="Mean Debt wrt to Party" , xlab="Mean Debt" ,cex.axis = .9 ,cex.names= 0.9 , col = rainbow(16) ) 
+
+```
+
+Let's check the distribution of debt amount through a boxplot 
+
+```{r debtDistriVsParty}
+
+#Sets outside margins : b, l, t, r 
+par(las=1, mar=c(5,10,2,0.3))
+
+boxplot(cdebt_all$amount ~ party,  horizontal = TRUE ,data = cdebt_all, cex.axis = .6, log='x',
+main = " Debt distirbution wrt to party", col = "#BA554C")
+  
+?boxplot
+
+#ggplot(cdebt_all, aes(x=cdebt_all$party, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
+
+```
+
+1. We notice that Democrats and Non partisan parties have contributed to
+   most of the debt amount
+
+2. Republican party has some outliers 
+
+3. Though there are more no of debts for republicans the amount of debt is distributed around 450$
+   R code to show the amount of debt
+   
 Next we would look at the relationship between the office sought by the candidate and the amount of debt incurred or order placed
 
 #### Examine the relationships between office and Debt Amount

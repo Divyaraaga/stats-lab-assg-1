@@ -1,6 +1,6 @@
 ---
 title: "Candidate Debt Exploration"
-author: "Divya"
+author: "Divya and Jason"
 date: "17 September 2017"
 output:
   word_document: default

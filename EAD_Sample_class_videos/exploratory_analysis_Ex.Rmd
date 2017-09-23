@@ -74,10 +74,11 @@ to issues of causality later in the course.
 First, we load the car library, which gives us a convenient scatterplotMatrix function.
 
 ```{r car}
-setwd("/Users/ds639c/Desktop/UCB_DataScience/Statistics/Unit 1/homework1")
+setwd("~/Desktop/UCB_DataScience/Statistics/stats-lab-assgn")
 getwd()
 
-library(cars)
+install.packages("car")
+library(car)
 ```
 
 

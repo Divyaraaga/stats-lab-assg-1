@@ -257,23 +257,8 @@ Each value of 'reportnumber' is unique (# of levels = # of observations).
 
 There seems to be a surge in debts in the middle of the reportnumber range, presumably due to values for this variable increasing with time (i.e., apparently issued sequentially).
 ```{r}
-#with(cdebt_revised, plot(reportnumber, amount))
-#with(cdebt_revised, plot(fromdate, amount))
-#with(cdebt_revised, plot(thrudate, amount))
-#with(cdebt_revised, plot(debtdate, amount))
-
-# Divya to Jason : As date variables have new names, just modified the names for the plots 
-# Divya to Jason : This is what u r trying to say i believe . Increase in the no of debts as we progress thru the years. Any of the below 2 graphs should help you. 
-
-plot(cdebt_revised$reportnumber, newFromdate)
-plot(cdebt_revised$reportnumber, newDebtdate)
-
-#Divya to Jason : You can ignore below 3 plots i guess
-
-#plot(newFromdate, amount)
-#plot(newThrudate, amount)
-#plot(newDebtdate, amount)
-
+plot(newDebtdate, amount)
+#abline(lm(amount ~ newDebtdate))
 ```
 
 ### Examine the target variable: Amount wrt to Party
@@ -330,8 +315,19 @@ par(las=1, mar=c(5,10,2,0.3))
 colorBAPalette <- c("#0000FF", "#E69F00", "#009E73", "#FF0000" )
 # D , R , N , I <==> D , N , I , R
 
+amount_office_party_filer <- aggregate(x = cdebt_revised$amount, by = cdebt_revised[c("office", "party","filername")], FUN = sum, na.rm=TRUE)
+amount_office_party_filer
+
+# Amount vs Party
 boxplot(cdebt_revised$amount ~ party,  horizontal = TRUE ,data = cdebt_revised, cex.axis = .6, log='x',
-main = " Debt distirbution by party", col = colorBAPalette)
+main = "Amount wrt to 'office' party ", col = colorBAPalette)
+
+# (candidate_party_office_amount) vs party
+boxplot(x ~ party, data = amount_office_party_filer, cex.axis = .6, log='x', horizontal = TRUE ,
+main = "Total Candidate Debt Amount grouped by office&party vs Party" , las=2 , col = colorBAPalette)
+
+# Divya to jason/steve : understand the aggregations but cant understand the boxplot comparisions
+# Please write up ur observations, I might understand once I read thru
 
 #ggplot(cdebt_revised, aes(x=cdebt_revised$party, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
 
@@ -340,6 +336,7 @@ main = " Debt distirbution by party", col = colorBAPalette)
 Next we would look at the relationship between the office sought by the candidate and the amount of debt incurred or order placed
 
 ### Examine the relationships between Office and Debt Amount
+
 ```{r amount_sum_office}
 amount_sum_office = tapply(cdebt_revised$amount, cdebt_revised$office, FUN=sum )
 (amount_sumK_office = amount_sum_office/1000)
@@ -366,10 +363,18 @@ barplot(amount_means_office[order(amount_means_office)], horiz = TRUE , las = 1,
 ```{r amountVsOffice}
 
 #Sets outside margins : b, l, t, r 
-par(las=1, mar=c(3,10,2,0.3))
+par(las=1, mar=c(3,20,2,0.3))
 
+# Amount vs Office
 boxplot(cdebt_revised$amount ~ office, data = cdebt_revised, cex.axis = .6, log='x', horizontal = TRUE ,
 main = "Amount wrt to 'office' Variable" , las=2 , col = "#DDA266")
+
+# (candidate_party_office_amount) vs office
+boxplot(x ~ office, data = amount_office_party_filer, cex.axis = .6, log='x', horizontal = TRUE ,
+main = "Total Candidate Debt Amount grouped by office&party vs Office" , las=2 , col = "#009E73")
+
+# Divya to jason/steve : understand the aggregations but cant understand the boxplot comparisions
+# Please write up ur observations, I might understand once i read thru
 
 #ggplot(cdebt_revised, aes(x=cdebt_revised$amount, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
 
@@ -405,7 +410,7 @@ main = " Debt distirbution wrt to Description" , las=2 , col = "#009E73")
 
 ## Analysis of Secondary Effects: What secondary variables might have confounding effects on the relationships you have identified? Explain how these variables affect your understanding of the data.
 
-### Examine the relationships between amount and office and party
+#### Examine the relationships between amount vs office vs party
 
 ```{r amountVsofficeVsParty}
 
@@ -417,6 +422,11 @@ amount_office_party
 
 ggplot(data=amount_office_party, aes(x=party, y=x, fill=office)) +
     geom_bar(stat="identity", position=position_dodge())
+
+# Divya to jason/steve This is filer aggregations , Dont get this one as well
+ggplot(data=amount_office_party_filer, aes(x=party, y=x, fill=office)) +
+    geom_bar(stat="identity", position=position_dodge())
+
 
 ```
 

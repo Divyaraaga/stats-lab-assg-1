@@ -86,7 +86,7 @@ library(car)
 #### Load the dataset found in the file, **"CandidateDebt.csv"**
 
 ```{r load}
-cdebt_original = read.csv("CandidateDebt.csv")
+cdebt_original = data.frame(read.csv("CandidateDebt.csv"))
 
 #Sets outside margins : b, l, t, r 
 par(oma= c(2,1,5,2) + 0.1)
@@ -99,22 +99,36 @@ par(mar = c(4,1,5,1))
 
 #### Describe your data set. What types of variables does it contain? How many observations are there?
 
-There were 28 variables in the original "CandidateDebt.csv" file, and 1043 observations. The variable "reportnumber" was of integer class, and the rest were factors with 1-141 levels. All were listed above (i.e., in the assignment), and no "id" variable was present. 
+There were 28 variables in the original 'CandidateDebt.csv' file, and 1043 observations. The variable 'reportnumber' was of integer class, and the rest were factors with 1-141 levels. All were listed above (i.e., in the assignment), and no 'id' variable was present. 
 ```{r variables}
 str(cdebt_original)
 ```
 
 
+
 #### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential issues. Explain whether any data processing or preparation is required for your data set.
 
-We noticed right away that the 'legislativedistrict' header did not correspond to the data in this column; it instead corresponded to the data in the next column to the right, and the same was true for all columns that followed. For example, 'DEMOCRAT' should refer to party, rather than jurisdiction. We therefore used Excel to shift all of these column headers one column to the right, and renamed the 'legislativedistrict' column 'office2' (because its contents resembled those of 'office'). We also deleted the 'vendorzip' column header because it was not associated with any data (the last column now being meaningfully labeled 'vendorstate').
+We noticed right away that the 'legislativedistrict' header did not correspond to the data in this column -- it instead corresponded to the data in the next column to the right, and the same was true for all columns that followed. For example, 'DEMOCRAT' should refer to 'party' rather than to 'jurisdiction.' We therefore used Excel to shift all of these column headers one column to the right, and renamed the 'legislativedistrict' column 'office2' (because its contents resembled those of 'office'). We also deleted the 'vendorzip' column header because it was not associated with any data (the last column now being appropriately labeled 'vendorstate').
 
 In addition, we noticed that a number of fields were empty or contained '#N/A' text. We converted these to 'NA' while loading the repaired CSV file, and found that this resulted in several columns (legislativedistrict,position,electionyear) changing from factor to int. Similarly, the key 'amount' variable changed from factor to num, thereby enabling quantitative analysis of debt. 
 
-
 ```{r variables}
-cdebt_all = read.csv("CandidateDebtFixed.csv", stringsAsFactors = T, na.strings=c(NA,"NA","#N/A" ,"", " "))
+cdebt_all = read.csv("CandidateDebt_Fixed.csv", stringsAsFactors = T, na.strings=c(NA,"NA","#N/A" ,"", " "))
 str(cdebt_all)
+```
+
+The MM/DD/YY format of the 3 date variables (fromdate, thrudate, debtdate) led to their factor classification, and simple use of as.Date does not yield YYYY year values (e.g., 2012 is read as 0012). To obtain useful data for each in a single line of code, we coerced from factor via the 'as.Date' method and corrected mathematically as neeed (effectively added 2000 years).
+```{r dates}
+cdebt_original$thrudate = as.Date(cdebt_original$thrudate, "%m/%d/%Y")
+summary(cdebt_original$thrudate)
+cdebt_original$fromdate = as.Date(cdebt_original$fromdate, "%m/%d/%Y") + 365.25 * 2000 - 15
+cdebt_original$thrudate = as.Date(cdebt_original$thrudate, "%m/%d/%Y") + 365.25 * 2000 - 15
+cdebt_original$debtdate = as.Date(cdebt_original$debtdate, "%m/%d/%Y") + 365.25 * 2000 - 15
+summary(cdebt_original$thrudate)
+``` 
+
+```{r dates}
+with(cdebt_original, plot(thrudate, amount))
 ```
 
 Following are some additional observations made while in Excel:
@@ -127,8 +141,7 @@ Last, the dataset contains several variables that appear unlikely to contribute 
     * electionyear: All values are either either 2012 or NA
     
 Jason to Divya: I think these merit more analysis before including above, i.e., we need to demonstrate what we state.  
-    * reportnumber: Sequentially-assigned unique value for each row presumably does not correlate with debt. We verified in Excel that the minimum difference between ordered values is one, so all values are unique. 
-    * firstname, middleinitial, lastname: filerid and/or filername can presumably be used in lieu of these 3 variables 
+    * firstname, middleinitial, lastname: these are presumably redundant to filername 
     * vendoraddress, vendorcity, vendorstate: vendorname might be used in lieu of these 4 variables
 
 ```{r origin}
@@ -143,11 +156,6 @@ summary(cdebt_all$recordtype)
 ```{r electionyear}
 summary(cdebt_all$electionyear)
 ``` 
-```{r reportnumber}
-# Jason to Divya: I can't get this to work... I'm trying to show there are 1043 levels (i.e., all unique)
-#summary(as.factor(cdebt_all$reportnumber))
-summary(as(cdebt_all$reportnumber, "factor")) 
-``` 
 
 
 ### Univariate Analysis of Key Variables: Use visualizations and descriptive statistics to perform a univariate analysis of each key variable. Be sure to describe any anomalies, coding issues, or potentially erroneous values. Explain how you respond to each issue you identify. Note any features that appear relevant to statistical analysis. Discuss what transformations may be appropriate for each variable.
@@ -155,7 +163,6 @@ summary(as(cdebt_all$reportnumber, "factor"))
 The 'amount' values are all positive and range from around 3 to 19,000 (units are unclear but are presumably dollars or perhaps thousands of dollars). The mean is more than 4x the median, and a histogram confirms the distribution is positively skewed.
 ```{r}
 summary(cdebt_all$amount)
-# Jason to Divya: I went ahead and set some breakpoints. 
 hist(cdebt_all$amount, breaks = seq(0, 20000, by = 2000), main = "Histogram of the 'amount' variable",  border="black", col="#00A5DF", xlab = "amount")
 ```
 
@@ -196,9 +203,12 @@ barplot(office[order(office)], horiz = TRUE , las = 1, main ="Number of debts by
 Nearly 47% of entries are associated with vendorcity of Seattle, followed by Woodinville and Washington, D.C.
 ```{r vendorcity}
 #qplot(cdebt_all$office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
-length(cdebt_all$vendorcity)
-summary(cdebt_all$vendorcity)
-summary(cdebt_all$vendorstate)
+#length(cdebt_all$vendorcity)
+#summary(cdebt_all$vendorcity)
+#summary(cdebt_all$vendorstate)
+count_Seattle = subset(cdebt_all, vendorcity == "SEATTLE")
+count_cities = subset(cdebt_all, !is.na(vendorcity))
+(share_Seattle = length(count_Seattle$vendorcity) / length(count_cities$vendorcity))
 
 vendorcity <- table(cdebt_all$vendorcity)
 #Sets plot margins : b, l, t, r 
@@ -226,6 +236,10 @@ summary(cdebt_all$description)
 
 ## Analysis of Key Relationships: Explore how your outcome variable is related to the other variables in your dataset. Make sure to use visualizations to understand the nature of each bivariate relationship. What tranformations can you apply to clarify the relationships you see in the data? Be sure to justify each transformation you use.
 
+Notably, if 'reportnumber' is coerced from int to factor, it becomes apparent that each value is unique (# of levels = # of observations).
+```{r reportnumber}
+str(as.factor(cdebt_original$reportnumber))
+``` 
 ```{r}
 # Jason to Divya: I just added this -- interestingly, there seems to be a surge in debts in the middle of the range, presumably due to reportnumber increasing with time. 
 with(cdebt_all, plot(reportnumber, amount))

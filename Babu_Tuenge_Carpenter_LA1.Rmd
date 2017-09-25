@@ -1,6 +1,6 @@
 ---
 title: "Candidate Debt Exploration"
-author: "Divya"
+author: "Divya and Jason"
 date: "17 September 2017"
 output:
   word_document: default
@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 As a member of the campaign committee for an upcoming election, you are interested in knowing as much as possible about debt reported by candidates in previous elections. Using the monthly voter registration statistics for registered voters in Oregon from 2012, perform an exploratory analysis to help the agency address their goals.
 
 Jason to Divya: Not sure what you're doing here. I think we should restore the text originally included in the assignment. 
+Divya to jason : I copied it as is from candidateDebt.rmd file .. you can knit the file and check it
 
 Perform an exploratory analysis to understand 
 \begin{center}
@@ -58,7 +59,7 @@ The labels of some of the variables are listed below; the rest of the variables 
 **vendorstate **: The state of the vendor or recipient.  <br />
 **vendorzip **: The zip code of the vendor or recipient.  <br />
 
-## Objective: Perform an exploratory analysis to understand how campaign characteristics are related to the candidates debt. 
+### Objective: Perform an exploratory analysis to understand how campaign characteristics are related to the candidates debt. 
 
 
 ## Introduction: State the research question that motivates your analysis.
@@ -68,7 +69,6 @@ How are campaign characteristics related to the candidates debt?
 
 ### Setup
 
-Jason to Divya: Leaving this alone for now, except note that I've commented-out the wd because it defaults to folder containing RMD file. 
 We first load the car library, which gives us a convenient scatterplotMatrix function.
 ```{r car}
 #setwd("~/Desktop/UCB_DataScience/Statistics/stats-lab-assgn")
@@ -78,7 +78,7 @@ We first load the car library, which gives us a convenient scatterplotMatrix fun
 #install.packages("ggplot2")
 #install.packages("randomcoloR")
 
-library(car)
+#library(car)
 #library(ggplot2)
 ```
 
@@ -96,6 +96,7 @@ par(mar = c(4,1,5,1))
 
 ```
 
+## Exploratory Analysis
 
 #### Describe your data set. What types of variables does it contain? How many observations are there?
 
@@ -104,8 +105,6 @@ There were 28 variables in the original 'CandidateDebt.csv' file, and 1043 obser
 str(cdebt_original)
 ```
 
-
-
 #### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential issues. Explain whether any data processing or preparation is required for your data set.
 
 We noticed right away that the 'legislativedistrict' header did not correspond to the data in this column -- it instead corresponded to the data in the next column to the right, and the same was true for all columns that followed. For example, 'DEMOCRAT' should refer to 'party' rather than to 'jurisdiction.' We therefore used Excel to shift all of these column headers one column to the right, and renamed the 'legislativedistrict' column 'office2' (because its contents resembled those of 'office'). We also deleted the 'vendorzip' column header because it was not associated with any data (the last column now being appropriately labeled 'vendorstate').
@@ -113,17 +112,19 @@ We noticed right away that the 'legislativedistrict' header did not correspond t
 In addition, we noticed that a number of fields were empty or contained '#N/A' text. We converted these to 'NA' while loading the repaired CSV file, and found that this resulted in several columns (legislativedistrict,position,electionyear) changing from factor to int. Similarly, the key 'amount' variable changed from factor to num, thereby enabling quantitative analysis of debt. 
 
 ```{r variables}
-cdebt_all = read.csv("CandidateDebt_Fixed.csv", stringsAsFactors = T, na.strings=c(NA,"NA","#N/A" ,"", " "))
-str(cdebt_all)
+cdebt_revised = data.frame(read.csv("CandidateDebt_Fixed.csv", stringsAsFactors = T, na.strings=c(NA,"NA","#N/A" ,"", " ")))
+str(cdebt_revised)
 ```
 
 The MM/DD/YY format of the 3 date variables (fromdate, thrudate, debtdate) led to their factor classification, and simple use of as.Date does not yield YYYY year values (e.g., 2012 is read as 0012). To obtain useful data for each in a single line of code, we coerced from factor via the 'as.Date' method and corrected mathematically as neeed (effectively added 2000 years).
 ```{r dates}
 cdebt_original$thrudate = as.Date(cdebt_original$thrudate, "%m/%d/%Y")
 summary(cdebt_original$thrudate)
+
 cdebt_original$fromdate = as.Date(cdebt_original$fromdate, "%m/%d/%Y") + 365.25 * 2000 - 15
 cdebt_original$thrudate = as.Date(cdebt_original$thrudate, "%m/%d/%Y") + 365.25 * 2000 - 15
 cdebt_original$debtdate = as.Date(cdebt_original$debtdate, "%m/%d/%Y") + 365.25 * 2000 - 15
+
 summary(cdebt_original$thrudate)
 ``` 
 
@@ -140,109 +141,129 @@ Last, the dataset contains several variables that appear unlikely to contribute 
     * origin, filertype, recordtype: Factor has only one level. Some rows in recordtype are NA, but in these cases whole row is NA.
     * electionyear: All values are either either 2012 or NA
     
-Jason to Divya: I think these merit more analysis before including above, i.e., we need to demonstrate what we state.  
+Jason to Divya: I think these merit more analysis before including above, i.e., we need to demonstrate what we state. 
+Divya to Jason : Sure
+
     * firstname, middleinitial, lastname: these are presumably redundant to filername 
     * vendoraddress, vendorcity, vendorstate: vendorname might be used in lieu of these 4 variables
 
 ```{r origin}
-summary(cdebt_all$origin)
+summary(cdebt_revised$origin)
 ``` 
 ```{r filertype}
-summary(cdebt_all$filertype)
+summary(cdebt_revised$filertype)
 ``` 
 ```{r recordtype}
-summary(cdebt_all$recordtype)
+summary(cdebt_revised$recordtype)
 ``` 
 ```{r electionyear}
-summary(cdebt_all$electionyear)
+summary(cdebt_revised$electionyear)
 ``` 
 
 
 ### Univariate Analysis of Key Variables: Use visualizations and descriptive statistics to perform a univariate analysis of each key variable. Be sure to describe any anomalies, coding issues, or potentially erroneous values. Explain how you respond to each issue you identify. Note any features that appear relevant to statistical analysis. Discuss what transformations may be appropriate for each variable.
 
 The 'amount' values are all positive and range from around 3 to 19,000 (units are unclear but are presumably dollars or perhaps thousands of dollars). The mean is more than 4x the median, and a histogram confirms the distribution is positively skewed.
+
+Divya to jason : Write a note on all amounts have been assumed to be Dollars
+
 ```{r}
-summary(cdebt_all$amount)
-hist(cdebt_all$amount, breaks = seq(0, 20000, by = 2000), main = "Histogram of the 'amount' variable",  border="black", col="#00A5DF", xlab = "amount")
+summary(cdebt_revised$amount)
+hist(cdebt_revised$amount, breaks = seq(0, 20000, by = 1000), main = "Histogram of the 'amount' variable",  border="black", col="#00A5DF", xlab = "Amount of Debt in $" ,ylab="No of Debts", ylim = c(0, 800))
+
 ```
 
 #### Examine talk about Party
 
 Nearly 65% of filings (by count rather than amount) were by Democrats -- more than twice the number filed by Republicans.  
 ```{r party}
-#qplot(cdebt_all$was_office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
 
-party <- table(cdebt_all$party)
-length(cdebt_all$party)
-summary(cdebt_all$party)
+party <- table(cdebt_revised$party)
+length(cdebt_revised$party)
+summary(cdebt_revised$party)
 
 #Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,2,0.3))
+par(las=1, mar=c(5,10,2,1))
 
-barplot(party[order(party)], horiz = TRUE , las = 1, main ="Number of debts by party" , xlab="No of debts" ,cex.axis = .9 ,cex.names= 0.9 , col = rainbow(16) )
+colorPalette <- c("#E69F00", "#009E73", "#FF0000", "#0000FF")
+# I , N , R , D
+
+barplot(party[order(party)], horiz = TRUE , las = 1, main ="Number of Debts wrt Party" , xlab="No of Debts" ,cex.axis = .9 ,cex.names= 0.9 , col = colorPalette , xlim = c(0, 700))
 
 ```
 #### Examine target variable: office 
 
 Most debt entries (about 51% of total) were filed by state representatives. State senators had the next-largest share, with less than 14% of the total count.
 ```{r office}
-#qplot(cdebt_all$office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
-length(cdebt_all$office)
-summary(cdebt_all$office)
 
-office <- table(cdebt_all$office)
+length(cdebt_revised$office)
+summary(cdebt_revised$office)
+
+office <- table(cdebt_revised$office)
 #Sets plot margins : b, l, t, r 
-par(las=1, mar=c(2.5,8,2, 0.3))
+par(las=1, mar=c(5,8,2, 1))
 
-barplot(office[order(office)], horiz = TRUE , las = 1, main ="Number of debts by office", xlab="Number of debts" ,cex.names=0.5 , col = terrain.colors(16)) 
-
-# [order(office)]
+barplot(office[order(office)], horiz = TRUE , las = 1, main ="Number of Debts by office", xlab="Number of Debts" ,cex.names=0.5 , col = terrain.colors(16),xlim = c(0, 600)) 
 
 ```
 
 Nearly 47% of entries are associated with vendorcity of Seattle, followed by Woodinville and Washington, D.C.
 ```{r vendorcity}
-#qplot(cdebt_all$office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
-#length(cdebt_all$vendorcity)
-#summary(cdebt_all$vendorcity)
-#summary(cdebt_all$vendorstate)
-count_Seattle = subset(cdebt_all, vendorcity == "SEATTLE")
-count_cities = subset(cdebt_all, !is.na(vendorcity))
+
+#length(cdebt_revised$vendorcity)
+#str(cdebt_revised$vendorcity)
+#summary(cdebt_revised$vendorstate)
+
+count_Seattle = subset(cdebt_revised, vendorcity == "SEATTLE")
+count_cities = subset(cdebt_revised, !is.na(vendorcity))
 (share_Seattle = length(count_Seattle$vendorcity) / length(count_cities$vendorcity))
 
-vendorcity <- table(cdebt_all$vendorcity)
+vendorcity <- table(cdebt_revised$vendorcity)
 #Sets plot margins : b, l, t, r 
 par(las=1, mar=c(2.5,8,2, 0.3))
 
-barplot(vendorcity[order(vendorcity)], horiz = TRUE , las = 1, main ="Number of debts by vendorcity", xlab="Number of debts" ,cex.names=0.5 , col = terrain.colors(16)) 
+barplot(vendorcity[order(vendorcity)], horiz = TRUE , las = 1, main ="Number of debts by vendorcity", xlab="Number of debts" ,cex.names=0.5 , col = heat.colors(29)) 
 
 
 ```
 
 Fully 25% of entries have "RE-ORDER TEE SHIRTS" in the description field. 
 ```{r description}
-#qplot(cdebt_all$office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
-length(cdebt_all$description)
-summary(cdebt_all$description)
+#length(cdebt_revised$description)
+#summary(cdebt_revised$description)
+description <- table(cdebt_revised$description)
 
-#description <- table(cdebt_all$description)
 #Sets plot margins : b, l, t, r 
-#par(las=1, mar=c(2.5,8,2, 0.3))
+par(las=1, mar=c(2.5,8,2, 0.7))
 
-#barplot(description[order(description)], horiz = TRUE , las = 1, main ="Number of debts by vendorstate", xlab="Number of debts" ,cex.names=0.5 , col = terrain.colors(16)) 
+barplot(description[order(description)], horiz = TRUE , las = 1, main ="Number of debts by description", xlab="Number of debts" ,cex.names=0.3 , col = terrain.colors(16) , xlim = c(0, 250) , width = 10) 
 
+#qplot(cdebt_revised$description , ylab="Number of debts", geom="bar", fill="Nature of the debt") + scale_x_discrete(label=function(x) abbreviate(x, minlength=7)) + coord_flip()
+#theme(axis.text.y=element_text(angle=90,hjust=1,vjust=0)) 
+
+#ggplot(data=cdebt_revised, aes(x=description)) + geom_bar(stat="identity")
+
+# [Divya to myself] Set axis till end
+# spacing between plots 
 
 ```
 
 ## Analysis of Key Relationships: Explore how your outcome variable is related to the other variables in your dataset. Make sure to use visualizations to understand the nature of each bivariate relationship. What tranformations can you apply to clarify the relationships you see in the data? Be sure to justify each transformation you use.
 
 Notably, if 'reportnumber' is coerced from int to factor, it becomes apparent that each value is unique (# of levels = # of observations).
+
+Divya to jason : you had this line before
+reportnumber: Sequentially-assigned unique value for each row presumably does not correlate with debt. We verified in Excel that the minimum difference between ordered values is one, so all values are unique. 
+      
 ```{r reportnumber}
-str(as.factor(cdebt_original$reportnumber))
+
+str(unique(cdebt_revised$reportnumber))
+
+#str(as.factor(cdebt_revised$reportnumber))
 ``` 
 ```{r}
 # Jason to Divya: I just added this -- interestingly, there seems to be a surge in debts in the middle of the range, presumably due to reportnumber increasing with time. 
-with(cdebt_all, plot(reportnumber, amount))
+with(cdebt_revised, plot(reportnumber, amount))
 ```
 
 #### Examine the target variable: Amount wrt to Party
@@ -251,19 +272,17 @@ Lets first examine Total Amount wrt to Party :
 
 Most of the debt is filed by Democrats -- more than 9x the amount filed by Republicans. The aforementioned 2x difference in filing count does not explain the gap between parties.
 ```{r amount_sum}
-(amount_sum = tapply(cdebt_all$amount, cdebt_all$party, FUN=sum))
+amount_sum = tapply(cdebt_revised$amount, cdebt_revised$party, FUN=sum )
+(amount_sumK = amount_sum/1000)
 ```
 
 ```{r totalDebtVsParty}
-#qplot(cdebt_all$was_office , main ="number of debts wrt to filer's office") +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=5))
+par(las=1, mar=c(5,10,2,0.8))
 
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,2,0.3))
+colorTAPalette <- c( "#E69F00", "#009E73","#FF0000","#0000FF")
+# N , I , D , R
 
-barplot(amount_sum[order(amount_sum)], horiz = TRUE , las = 1, main ="Total Debt wrt to Party" , xlab="Total Debt" ,cex.axis = .9 ,cex.names= 0.9 , col = rainbow(16), xpd = FALSE)
-?barplot
-
-# display in K
+barplot(amount_sumK[order(amount_sumK)], horiz = TRUE , las = 1, main ="Total Debt wrt to Party" , xlab="Total Debt in K $" ,cex.axis = .9 ,cex.names= 0.9 , col = colorTAPalette , xlim = c(0, 1200))
 
 ```
 
@@ -271,14 +290,16 @@ To better assess this relationship, we will plot the mean amount for each party.
 
 ```{r meanAmountVsParty}
 
+
 #Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,2,0.3))
+par(las=1, mar=c(5,10,2,0.8))
 
-amount_means = by(cdebt_all$amount, cdebt_all$party,  mean)
-amount_means
+colorMAPalette <- c( "#E69F00", "#FF0000","#009E73","#0000FF")
+# I , N , R , D
 
-#ggplot(cdebt_all, aes(x=cdebt_all$party, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
-barplot(amount_means[order(amount_means)], horiz = TRUE , las = 1, main ="Mean Debt wrt to Party" , xlab="Mean Debt" ,cex.axis = .9 ,cex.names= 0.9 , col = rainbow(16) ) 
+amount_means = by(cdebt_revised$amount, cdebt_revised$party,  mean)
+
+barplot(amount_means[order(amount_means)], horiz = TRUE , las = 1, main ="Mean Debt wrt to Party" , xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.9 , col = colorMAPalette, xlim = c(0, 2000)) 
 
 ```
 
@@ -289,12 +310,13 @@ Let's check the distribution of debt amount through a boxplot
 #Sets outside margins : b, l, t, r 
 par(las=1, mar=c(5,10,2,0.3))
 
-boxplot(cdebt_all$amount ~ party,  horizontal = TRUE ,data = cdebt_all, cex.axis = .6, log='x',
-main = " Debt distirbution wrt to party", col = "#BA554C")
-  
-?boxplot
+colorBAPalette <- c("#0000FF", "#E69F00", "#009E73", "#FF0000" )
+# D , R , N , I <==> D , N , I , R
 
-#ggplot(cdebt_all, aes(x=cdebt_all$party, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
+boxplot(cdebt_revised$amount ~ party,  horizontal = TRUE ,data = cdebt_revised, cex.axis = .6, log='x',
+main = " Debt distirbution wrt to party", col = colorBAPalette)
+
+#ggplot(cdebt_revised, aes(x=cdebt_revised$party, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
 
 ```
 
@@ -310,29 +332,22 @@ Next we would look at the relationship between the office sought by the candidat
 
 #### Examine the relationships between office and Debt Amount
 
-```{r amountvsoffice}
+```{r amountVsOffice}
 
 #Sets outside margins : b, l, t, r 
-par(las=1, mar=c(10,4,2,0.3))
+par(las=1, mar=c(3,10,2,0.3))
 
-boxplot(cdebt_all$amount ~ office, data = cdebt_all, cex.axis = .6, log='y',
-main = " Debt distirbution wrt to office" , las=2 , col = "#DDA266")
-  
-?boxplot
+boxplot(cdebt_revised$amount ~ office, data = cdebt_revised, cex.axis = .6, log='x', horizontal = TRUE ,
+main = "Amount wrt to 'office' Variable" , las=2 , col = "#DDA266")
 
-var(cdebt_all$amount, na.rm = TRUE) 
-
-?var
-
-#ggplot(cdebt_all, aes(x=cdebt_all$amount, y=cdebt_all$was_office)) + geom_boxplot(outlier.colour="red")
+#ggplot(cdebt_revised, aes(x=cdebt_revised$amount, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
 
 ```
 
 
 ```{r}
-summary(cdebt_all$amount)
+summary(cdebt_revised$amount)
 ```
-##### Bivariate Analysis
 
 1. We noticed though state representative has more number of debts , but
    the total amount is between $5 to $1000 with the maximum debt amount between $300 and $750 
@@ -343,64 +358,17 @@ summary(cdebt_all$amount)
 3. The boxplots indicate that the debt amounts are almost around the same interquartile region
    which means that the debt amount for all the candidates are in the same range irrespective of their served offices 
 
+#### Examine the relationships between description of the debt and the Amount
 
-## Analysis of Secondary Effects: What secondary variables might have confounding effects on the relationships you have identified? Explain how these variables affect your understanding of the data.
+```{r amountVsDesc}
 
-## Exploratory Analysis
+#Sets outside margins : b, l, t, r 
+par(las=1, mar=c(3,10,2,0.3))
 
-## Scatterplot Matrix 
-[Divya] : Dont think this plot is required at all 
+boxplot(cdebt_revised$amount ~ description, data = cdebt_revised, cex.axis = .6, log='x', horizontal = TRUE ,
+main = " Debt distirbution wrt to Description" , las=2 , col = "#009E73")
 
-When we have a large number of variables, we often begin with a scatterplot matrix. This is helpful for getting a high-level overview of the relationships between our variables and can draw our attention to important features we want to investigate further.
-
-[Divya] : Guess these scatterplots are not relevant to categorical variables , the below would be considered as chart junk
-
-```{r relationships}
-
-#summary(cdebt_all$position)
-
-#scatterplotMatrix( ~ filerid + legislativedistrict + position + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for filer id and int Variables wrt Debt ")
-
-#scatterplotMatrix( ~ office + office2 + party  + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix wrt Debt ")
-
-#scatterplotMatrix( ~ jurisdiction + jurisdictioncounty + jurisdictiontype  + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for jurisdiction wrt Debt ")
-
-#scatterplotMatrix( ~ fromdate + thrudate +  debtdate + amount , data = cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix for next 3 Key Variables wrt Amount")
-
-#scatterplotMatrix(~ code + description + vendorname  + amount , data= cdebt_all, diagonal = "histogram", main = "Scatterplot Matrix type of Debt")
+#ggplot(cdebt_revised, aes(x=cdebt_revised$amount, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
 
 ```
-
-Jason to Divya: I've moved some of your text down here for now to tidy up. 
-
-[Divya] : Jason Delete the below
-
-Since we are trying to understand how campaign characteristics are related to the candidates debt, we look into the last row and last column where amount represents the x-axis and the other categorical variables represent the y-axis.
-
-We noticed the following relationship between amount and the other variables:
- * filerid  : We noticed that The filerid and amount dont have any obvious relationship
- * legislativedistrict : We noticed that legislative district has categorical values , which indicate no obvious relationship with amount
- * position : There is some relationship , should evaluate ???
- 
-#### Examine target variable: amount (i.e., the debt amount)
-
-[Divya] : Just notes
-Now we need define what are the variables that define our campaign characteristics
-Looking at the data the variables are (wrt to amount)
-
-1. Party  : Party he ran for 
-2. office : office he ran for
-3. jurisdiction county : for which county he ran for
-4. jurisdiction : for which jurisdiction
-5. jurisdiction type : for which juridisction type
-
-Secondary effects can be analysed through below variables(wrt to amount)
-1. code : Many N/A and blanks
-2. description : Description could be worded differently for the same kind of debt
-3. vendor name : can give some insights
-
-
-[Divya Notes] : 
-Total Amount of Debt by Party, Mean Debt by Party
-Total Amount of Debt by Office and Party combo, Mean amount of debt by Office and Party Combo
-Debt by Area (County)
+## Analysis of Secondary Effects: What secondary variables might have confounding effects on the relationships you have identified? Explain how these variables affect your understanding of the data.

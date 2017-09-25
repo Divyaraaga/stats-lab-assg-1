@@ -158,29 +158,12 @@ The **fromdate**, **thrudate**, and **debtdate** columns can be treated as date 
 
 The MM/DD/YY format of the 3 date variables (fromdate, thrudate, debtdate) led to their factor classification, and simple use of as.Date does not yield YYYY year values (e.g., 2012 is read as 0012). To obtain useful data for each of these variables in a single line of code, we coerced from factor to date and then corrected mathematically as neeed (effectively adding 2000 years).
 
-```{r origin}
-#summary(cdebt_revised)
-c("legislativedistrict ", 1 - length(na.omit(cdebt_revised$legislativedistrict)) / length(cdebt_revised$legislativedistrict))
-1 - length(na.omit(cdebt_revised$position)) / length(cdebt_revised$position)
-1 - length(na.omit(cdebt_revised$jurisdictioncounty)) / length(cdebt_revised$jurisdictioncounty)
-1 - length(na.omit(cdebt_revised$code)) / length(cdebt_revised$code)
-1 - length(na.omit(cdebt_revised$description)) / length(cdebt_revised$description)
-1 - length(na.omit(cdebt_revised$vendoraddress)) / length(cdebt_revised$vendoraddress)
-1 - length(na.omit(cdebt_revised$vendorcity)) / length(cdebt_revised$vendorcity)
-1 - length(na.omit(cdebt_revised$vendorstate)) / length(cdebt_revised$vendorstate)
-```
-
-
-The **fromdate**, **thrudate**, and **debtdate** columns can be treated as date columns as follows: 
-
-The MM/DD/YY format of the 3 date variables (fromdate, thrudate, debtdate) led to their factor classification, and simple use of as.Date does not yield YYYY year values (e.g., 2012 is read as 0012). To obtain useful data for each of these variables in a single line of code, we coerced from factor to date and then corrected mathematically as neeed (effectively adding 2000 years).
-
 ```{r dates}
 summary(cdebt_revised$debtdate)
-formattedFromdate <- as.Date(as.character(cdebt_revised$fromdate), format = "%m/%d/%y")
-formattedThrudate <- as.Date(as.character(cdebt_revised$thrudate), format = "%m/%d/%y")
-formattedDebtdate <- as.Date(as.character(cdebt_revised$debtdate), format = "%m/%d/%y")
-summary(formattedDebtdate)
+cdebt_revised$fromdate <- as.Date(as.character(cdebt_revised$fromdate), format = "%m/%d/%y")
+cdebt_revised$thrudate <- as.Date(as.character(cdebt_revised$thrudate), format = "%m/%d/%y")
+cdebt_revised$debtdate <- as.Date(as.character(cdebt_revised$debtdate), format = "%m/%d/%y")
+summary(cdebt_revised$debtdate)
 ``` 
 
 Following are some additional observations made while repairing the CSV file in Excel:

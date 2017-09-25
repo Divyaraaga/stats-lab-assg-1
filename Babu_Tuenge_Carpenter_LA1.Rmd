@@ -1,7 +1,7 @@
 ---
 title: "Candidate Debt Exploration"
 author: "Divya and Jason"
-date: "17 September 2017"
+date: "25 September 2017"
 output:
   word_document: default
   pdf_document: default
@@ -12,126 +12,93 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Background
+
+As members of the campaign committee for an upcoming election, we are interested in knowing as much as possible about debt reported by candidates in previous elections. Using the monthly voter registration statistics for registered voters in Oregon from 2012, we performed an exploratory analysis to help the agency address their goals. Our objectie was to perform an exploratory analysis to understand how campaign characteristics are related to the candidates debt.
+
+We Were given a dataset on voter registration from 2012 **"CandidateDebt.csv"**.  The dependent (or target) variable in this data is named "amount". We were told that the labels of the variables would be as listed below, and the rest of the variables should be self-explanatory
+
+**id**: internal identifier that corresponds to a single expenditure record. 
+**reportnumber**: identifier used for tracking the individual form 
+**origin**: This field shows from which filed report-type the data originates. 
+**filerid**: The unique id assigned to a candidate. 
+**filertype**: Indicates if this record is for a candidate.
+**filername**: The candidate or committee name as reported on the candidates registration. 
+**firstname**: This field represents the first name, as reported by the filer. 
+**middleinitial**: This field represents the middle initial, as reported by the filer. 
+**lastname**: This field represents the last name, as reported by the filer.
+**office**: The office sought by the candidate.
+**legislativedistrict**: The Washington State legislative district. 
+**position**: The position associated with an office. 
+**party**: The political party as declared by the candidate on their registration.
+**jurisdiction**: The political jurisdiction associated with the office of a candidate.
+**jurisdictioncounty**: The county associated with the jurisdiction of a candidate. 
+**jurisdictiontype**: The type of jurisdiction this office is: Statewide, Local, etc.
+**electionyear**: The election year in the case of candidates.
+**amount**: The amount of the debt incurred or order placed.
+**recordtype**: This field designates the item as a debt.
+**fromdate**: The start date of the period for the report on which this debt record was reported.
+**thrudate**: The end date of the period for the report on which this debt record was reported.
+**debtdate**: The date that the debt was incurred.
+**code**: The type of debt. 
+**description**: The reported description of the transaction.
+**vendorname**: The name of the vendor or recipients name. 
+**vendoraddress**: The street address of the vendor or recipient.
+**vendorcity**: The city of the vendor or recipient.
+**vendorstate**: The state of the vendor or recipient.
+**vendorzip**: The zip code of the vendor or recipient.
+
+
 ## Introduction
 
-As a member of the campaign committee for an upcoming election, you are interested in knowing as much as possible about debt reported by candidates in previous elections. Using the monthly voter registration statistics for registered voters in Oregon from 2012, perform an exploratory analysis to help the agency address their goals.
-
-Jason to Divya: Not sure what you're doing here. I think we should restore the text originally included in the assignment. 
-Divya to jason : you can remove it
-
-Perform an exploratory analysis to understand 
-\begin{center}
-How campaign characteristics are related to the candidates debt. 
-\end{center}
-
-Dataset on voter registration from 2012 **"CandidateDebt.csv"**.  
-The dependent (or target) variable in this data is named "amount".
-
-The labels of some of the variables are listed below; the rest of the variables should be self-explanatory.
-
-**id **:  internal identifier that corresponds to a single expenditure record. <br />
-**reportnumber** : identifier used for tracking the individual form. <br />
-**origin** : This field shows from which filed report-type the data originates. <br />
-**filerid** : The unique id assigned to a candidate.  <br />
-**filertype** : Indicates if this record is for a candidate. <br />
-**filername**: The candidate or committee name as reported on the candidates registration. <br />
-**firstname** : This field represents the first name, as reported by the filer. <br />
-**middleinitial** : This field represents the middle initial, as reported by the filer. <br />
-**lastname**: This field represents the last name, as reported by the filer. <br />
-**office** : The office sought by the candidate. <br />
-**position** : The position associated with an office. <br />
-**legislativedistrict** : The Washington State legislative district. <br />
-**was_party**: Should get the value from ryan . <br />
-**party** : The political party as declared by the candidate on their registration. <br />
-**jurisdiction** : The political jurisdiction associated with the office of a candidate. <br />
-**jurisdictioncounty **: The county associated with the jurisdiction of a candidate.
-**jurisdictiontype** : The type of jurisdiction this office is: Statewide, Local, etc. <br />
-**electionyear** : The election year in the case of candidates. <br />
-**amount** : The amount of the debt incurred or order placed. <br />
-**recordtype** : This field designates the item as a debt. <br />
-**fromdate** : The start date of the period for the report on which this debt record was reported.  <br />
-**thrudate** : The end date of the period for the report on which this debt record was reported.  <br />
-**debtdate** : The date that the debt was incurred.  <br />
-**code** :The type of debt.  <br />
-**description** : The reported description of the transaction.  <br />
-**vendorname** : The name of the vendor or recipient???s name.  <br />
-**vendoraddress** : The street address of the vendor or recipient.  <br />
-**vendorcity** : The city of the vendor or recipient.  <br />
-**vendorstate **: The state of the vendor or recipient.  <br />
-**vendorzip **: The zip code of the vendor or recipient.  <br />
-
-### Objective: Perform an exploratory analysis to understand how campaign characteristics are related to the candidates debt. 
+The research question that motivated our analysis was: How are campaign characteristics related to the candidates debt?
 
 
-## Introduction: State the research question that motivates your analysis.
+### Describe your data set. What types of variables does it contain? How many observations are there?
 
-How are campaign characteristics related to the candidates debt?
-
-
-### Setup
-
-We first load the car library, which gives us a convenient scatterplotMatrix function.
+There were 28 variables in the original 'CandidateDebt.csv' file, and 1043 observations. The variable 'reportnumber' was of integer class, and the rest were factors with 1-141 levels. All were listed above (i.e., in the assignment), and no 'id' variable was present. 
+Jason to Divya: I've consolidated here, and we should get rid of whatever we aren't using (note that I need the car library)
 ```{r car}
 #setwd("~/Desktop/UCB_DataScience/Statistics/stats-lab-assgn")
 #getwd() 
-
 #install.packages("FSA")
 #install.packages("ggplot2")
 #install.packages("randomcoloR")
-
 #library(car)
 #library(ggplot2)
-```
-
-
-#### Load the dataset found in the file, **"CandidateDebt.csv"**
-
-```{r load}
 cdebt_original = data.frame(read.csv("CandidateDebt.csv"))
-
-#Sets outside margins : b, l, t, r 
-par(oma= c(2,1,5,2) + 0.1)
-
-#Sets plot margins
-par(mar = c(4,1,5,1))
-
-```
-
-## Exploratory Analysis
-
-#### Describe your data set. What types of variables does it contain? How many observations are there?
-
-There were 28 variables in the original 'CandidateDebt.csv' file, and 1043 observations. The variable 'reportnumber' was of integer class, and the rest were factors with 1-141 levels. All were listed above (i.e., in the assignment), and no 'id' variable was present. 
-```{r oldCSV}
+par(oma= c(2,1,5,2) + 0.1) #Sets outside margins : b, l, t, r 
+par(mar = c(4,1,5,1)) #Sets plot margins
 str(cdebt_original)
 ```
 
-#### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential issues. Explain whether any data processing or preparation is required for your data set.
 
-We noticed right away that the 'legislativedistrict' header did not correspond to the data in this column -- it instead corresponded to the data in the next column to the right, and the same was true for all columns that followed. For example, 'DEMOCRAT' should refer to 'party' rather than to 'jurisdiction.' We therefore used Excel to shift all of these column headers one column to the right, and renamed the 'legislativedistrict' column 'office2' (because its contents resembled those of 'office'). We also deleted the 'vendorzip' column header because it was not associated with any data (the last column now being appropriately labeled 'vendorstate').
+### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential issues. Explain whether any data processing or preparation is required for your data set.
 
-In addition, we noticed that a number of fields were empty or contained '#N/A' text. We converted these to 'NA' while loading the repaired CSV file, and found that this resulted in several columns (legislativedistrict,position,electionyear) changing from factor to int. Similarly, the key 'amount' variable changed from factor to num, thereby enabling quantitative analysis of debt. 
+We noticed right away that the 'legislativedistrict' header did not correspond to the data in this column -- it instead corresponded to the data in the next column to the right, and the same was true for all columns that followed. For example, 'DEMOCRAT' should refer to 'party' rather than to 'jurisdiction.' We therefore used Excel to shift all of these column headers one column to the right, and tentatively renamed the 'legislativedistrict' column 'office2' (because its contents resembled those of 'office'). We also deleted the 'vendorzip' column header because it was not associated with any data (the last column now being appropriately labeled 'vendorstate').
+
+In addition, we observed that a number of fields were empty or contained '#N/A' text. We converted these to 'NA' while loading the repaired CSV file, and found that this resulted in several columns (legislativedistrict, position, electionyear) changing from factor to int. Similarly, the key 'amount' variable changed from factor to num, thereby enabling quantitative analysis of debt. 
 
 ```{r revisedCSV}
 cdebt_revised = data.frame(read.csv("CandidateDebt_Fixed.csv", stringsAsFactors = T, na.strings=c(NA,"NA","#N/A" ,"", " ")))
 str(cdebt_revised)
 ```
 
+We then removed the 56 rows containing NA values in the 'amount' column, as these could not be quantitatively related to debt. In fact, these rows were mostly comprised of NA values, thereby confounding comparison with other variables as well. 
+```{r amount}
+cdebt_revised = subset(cdebt_revised, !is.na(amount))
+length(cdebt_revised$amount)
+```
+
 The MM/DD/YY format of the 3 date variables (fromdate, thrudate, debtdate) led to their factor classification, and simple use of as.Date does not yield YYYY year values (e.g., 2012 is read as 0012). To obtain useful data for each in a single line of code, we coerced from factor via the 'as.Date' method and corrected mathematically as neeed (effectively added 2000 years).
 ```{r dates}
-cdebt_original$thrudate = as.Date(cdebt_original$thrudate, "%m/%d/%Y")
-summary(cdebt_original$thrudate)
-
-cdebt_original$fromdate = as.Date(cdebt_original$fromdate, "%m/%d/%Y") + 365.25 * 2000 - 15
-cdebt_original$thrudate = as.Date(cdebt_original$thrudate, "%m/%d/%Y") + 365.25 * 2000 - 15
-cdebt_original$debtdate = as.Date(cdebt_original$debtdate, "%m/%d/%Y") + 365.25 * 2000 - 15
-
-summary(cdebt_original$thrudate)
+cdebt_revised$thrudate = as.Date(cdebt_revised$thrudate, "%m/%d/%Y")
+summary(cdebt_revised$thrudate)
+cdebt_revised$fromdate = as.Date(cdebt_revised$fromdate, "%m/%d/%Y") + 365.25 * 2000 - 15
+cdebt_revised$thrudate = as.Date(cdebt_revised$thrudate, "%m/%d/%Y") + 365.25 * 2000 - 15
+cdebt_revised$debtdate = as.Date(cdebt_revised$debtdate, "%m/%d/%Y") + 365.25 * 2000 - 15
+summary(cdebt_revised$thrudate)
 ``` 
-
-```{r datesPlot}
-with(cdebt_original, plot(thrudate, amount))
-```
 
 Following are some additional observations made while in Excel:
     * Many filernames (and filerids) have multiple entries in the table. Consequently, a given person will be counted multiple times if corresponding rows aren't consolidated into a total or set of totals. Notably, a given filername is often associated with a variety of parties and offices. 
@@ -162,7 +129,7 @@ summary(cdebt_revised$electionyear)
 ``` 
 
 
-### Univariate Analysis of Key Variables: Use visualizations and descriptive statistics to perform a univariate analysis of each key variable. Be sure to describe any anomalies, coding issues, or potentially erroneous values. Explain how you respond to each issue you identify. Note any features that appear relevant to statistical analysis. Discuss what transformations may be appropriate for each variable.
+## Univariate Analysis of Key Variables: Use visualizations and descriptive statistics to perform a univariate analysis of each key variable. Be sure to describe any anomalies, coding issues, or potentially erroneous values. Explain how you respond to each issue you identify. Note any features that appear relevant to statistical analysis. Discuss what transformations may be appropriate for each variable.
 
 The 'amount' values are all positive and range from around 3 to 19,000 (units are unclear but are presumably dollars or perhaps thousands of dollars). The mean is more than 4x the median, and a histogram confirms the distribution is positively skewed.
 
@@ -174,7 +141,7 @@ hist(cdebt_revised$amount, breaks = seq(0, 20000, by = 1000), main = "Histogram 
 
 ```
 
-#### Examine talk about Party
+### Examine talk about Party
 
 Nearly 65% of filings (by count rather than amount) were by Democrats -- more than twice the number filed by Republicans.  
 ```{r party}
@@ -192,7 +159,7 @@ colorPalette <- c("#E69F00", "#009E73", "#FF0000", "#0000FF")
 barplot(party[order(party)], horiz = TRUE , las = 1, main ="Number of Debts wrt Party" , xlab="No of Debts" ,cex.axis = .9 ,cex.names= 0.9 , col = colorPalette , xlim = c(0, 700))
 
 ```
-#### Examine target variable: office 
+### Examine target variable: office 
 
 Most debt entries (about 51% of total) were filed by state representatives. State senators had the next-largest share, with less than 14% of the total count.
 ```{r office}
@@ -208,7 +175,7 @@ barplot(office[order(office)], horiz = TRUE , las = 1, main ="Number of Debts by
 
 ```
 
-#### Examine the variable: vendor city
+### Examine the variable: vendor city
 
 Nearly 47% of entries are associated with vendorcity of Seattle, followed by Woodinville and Washington, D.C.
 ```{r vendorcity}
@@ -229,7 +196,7 @@ barplot(vendorcity[order(vendorcity)], horiz = TRUE , las = 1, main ="Number of 
 
 
 ```
-#### Examine the variable: description
+### Examine the variable: description
 
 Fully 25% of entries have "RE-ORDER TEE SHIRTS" in the description field. 
 ```{r description}
@@ -254,23 +221,20 @@ barplot(description[order(description)], horiz = TRUE , las = 1, main ="Number o
 
 ## Analysis of Key Relationships: Explore how your outcome variable is related to the other variables in your dataset. Make sure to use visualizations to understand the nature of each bivariate relationship. What tranformations can you apply to clarify the relationships you see in the data? Be sure to justify each transformation you use.
 
-Notably, if 'reportnumber' is coerced from int to factor, it becomes apparent that each value is unique (# of levels = # of observations).
-
-Divya to jason : you had this line before
-reportnumber: Sequentially-assigned unique value for each row presumably does not correlate with debt. We verified in Excel that the minimum difference between ordered values is one, so all values are unique. 
-      
+Each value of 'reportnumber' is unique (# of levels = # of observations).
 ```{r reportnumber}
-
-str(unique(cdebt_revised$reportnumber))
-
-#str(as.factor(cdebt_revised$reportnumber))
+(length(cdebt_revised$reportnumber) - length(unique(cdebt_revised$reportnumber)))
 ``` 
+
+There seems to be a surge in debts in the middle of the reportnumber range, presumably due to values for this variable increasing with time (i.e., apparently issued sequentially).
 ```{r}
-# Jason to Divya: I just added this -- interestingly, there seems to be a surge in debts in the middle of the range, presumably due to reportnumber increasing with time. 
 with(cdebt_revised, plot(reportnumber, amount))
+with(cdebt_revised, plot(fromdate, amount))
+with(cdebt_revised, plot(thrudate, amount))
+with(cdebt_revised, plot(debtdate, amount))
 ```
 
-#### Examine the target variable: Amount wrt to Party
+### Examine the target variable: Amount wrt to Party
 
 Lets first examine Total Amount wrt to Party :
 
@@ -334,7 +298,7 @@ main = " Debt distirbution wrt to party", col = colorBAPalette)
    
 Next we would look at the relationship between the office sought by the candidate and the amount of debt incurred or order placed
 
-#### Examine the relationships between office and Debt Amount
+### Examine the relationships between office and Debt Amount
 
 ```{r amountVsOffice}
 
@@ -362,7 +326,7 @@ summary(cdebt_revised$amount)
 3. The boxplots indicate that the debt amounts are almost around the same interquartile region
    which means that the debt amount for all the candidates are in the same range irrespective of their served offices 
 
-#### Examine the relationships between description of the debt and the Amount
+### Examine the relationships between description of the debt and the Amount
 
 ```{r amountVsDesc}
 
@@ -377,3 +341,6 @@ main = " Debt distirbution wrt to Description" , las=2 , col = "#009E73")
 ```
 
 ## Analysis of Secondary Effects: What secondary variables might have confounding effects on the relationships you have identified? Explain how these variables affect your understanding of the data.
+
+## Conclusion: Summarize your exploratory analysis. What can you conclude based on your analysis?
+

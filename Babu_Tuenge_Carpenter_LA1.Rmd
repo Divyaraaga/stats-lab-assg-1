@@ -1,6 +1,6 @@
 ---
 title: "Candidate Debt Exploration"
-author: "Divya and Jason"
+author: "Divya Babu, Jason Tuenge, and Steve Carpenter"
 date: "25 September 2017"
 output:
   word_document: default
@@ -14,9 +14,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Background
 
-As members of the campaign committee for an upcoming election, we are interested in knowing as much as possible about debt reported by candidates in previous elections. Using the monthly voter registration statistics for registered voters in Oregon from 2012, we performed an exploratory analysis to help the agency address their goals. Our objectie was to perform an exploratory analysis to understand how campaign characteristics are related to the candidates debt.
+As members of the campaign committee for an upcoming election, we would be interested in knowing as much as possible about debt reported by candidates in previous elections. Using the monthly voter registration statistics for registered voters in Oregon from 2012, we performed an exploratory analysis to help the agency address their goals. Our objectie was to understand how campaign characteristics are related to the candidates debt.
 
-We Were given a dataset on voter registration from 2012 **"CandidateDebt.csv"**.  The dependent (or target) variable in this data is named "amount". We were told that the labels of the variables would be as listed below, and the rest of the variables should be self-explanatory
+We Were given a dataset on voter registration from 2012 **"CandidateDebt.csv"**.  The dependent (or target) variable in this data is named "amount". We were told that the labels of the variables would be as listed below, and that the rest of the variables should be self-explanatory
 
 **id**: internal identifier that corresponds to a single expenditure record. 
 **reportnumber**: identifier used for tracking the individual form 
@@ -66,16 +66,28 @@ There were 28 variables in the original 'CandidateDebt.csv' file, and 1043 obser
 
 library(car)
 library(ggplot2)
-cdebt_original = data.frame(read.csv("CandidateDebt.csv"))
 par(oma= c(2,1,5,2) + 0.1) #Sets outside margins : b, l, t, r 
 par(mar = c(4,1,5,1)) #Sets plot margins
+cdebt_original = data.frame(read.csv("CandidateDebt.csv"))
 str(cdebt_original)
 ```
 
 
 ### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential issues. Explain whether any data processing or preparation is required for your data set.
 
-We noticed right away that the 'legislativedistrict' header did not correspond to the data in this column -- it instead corresponded to the data in the next column to the right, and the same was true for all columns that followed. For example, 'DEMOCRAT' should refer to 'party' rather than to 'jurisdiction.' We therefore used Excel to shift all of these column headers one column to the right, and tentatively renamed the 'legislativedistrict' column 'office2' (because its contents resembled those of 'office'). We also deleted the 'vendorzip' column header because it was not associated with any data (the last column now being appropriately labeled 'vendorstate').
+It is already apparent that:
+* As we would hope, each reportnumber is unique. 
+* Similarly, there are as many unique filernames as unique [lastname, firstname, middlename] triples.
+* There are more than 7 reportnumbers per filerid on average. Consequently, a given person will be counted multiple times if corresponding rows aren't consolidated into a total or set of totals. 
+* There are 7 more levels for filerid than for filername. In some cases (but probably not all) this could be due to different candidates having the same name -- including middle initial.
+```{r}
+length(cdebt_original$reportnumber) - length(unique(cdebt_original$reportnumber))
+length(unique(cdebt_original$filername)) - length(sort(unique(paste(cdebt_original$lastname, cdebt_original$firstname, cdebt_original$middleinitial)))) #shared lastname: FARRELL, JOHNSON, LADENBURG, MORRIS, THOMAS
+length(unique(cdebt_original$reportnumber)) / length(unique(cdebt_original$filerid))
+length(unique(cdebt_original$filerid)) - length(unique(cdebt_original$filername))
+```
+
+We also noticed right away that the 'legislativedistrict' header did not correspond to the data in this column -- it instead corresponded to the data in the next column to the right, and the same was true for all columns that followed. For example, 'DEMOCRAT' should refer to party rather than to jurisdiction. We therefore used Excel to shift all of these column headers one column to the right, and tentatively renamed the 'legislativedistrict' column 'office2' (because its contents resembled those of 'office'). We also deleted the 'vendorzip' column header because it was not associated with any data (the last column now being appropriately labeled 'vendorstate').
 
 In addition, we observed that a number of fields were empty or contained '#N/A' text. We converted these to 'NA' while loading the repaired CSV file, and found that this resulted in several columns (legislativedistrict, position, electionyear) changing from factor to int. Similarly, the key 'amount' variable changed from factor to num, thereby enabling quantitative analysis of debt. 
 
@@ -87,53 +99,58 @@ str(cdebt_revised)
 We then removed the 56 rows containing NA values in the 'amount' column, as these could not be quantitatively related to debt. In fact, these rows were mostly comprised of NA values, thereby confounding comparison with other variables as well. 
 ```{r amount}
 cdebt_revised = subset(cdebt_revised, !is.na(amount))
-length(cdebt_revised$amount)
-str(cdebt_revised)
+length(cdebt_original$amount) - length(cdebt_revised$amount)
 ```
 
-The MM/DD/YY format of the 3 date variables (fromdate, thrudate, debtdate) led to their factor classification, and simple use of as.Date does not yield YYYY year values (e.g., 2012 is read as 0012). To obtain useful data for each in a single line of code, we coerced from factor via the 'as.Date' method and corrected mathematically as neeed (effectively added 2000 years).
+A number of variables were still substantially comprised of NA values:
+* legislativedistrict
+* position
+* jurisdictioncounty
+* code
+* description
+* vendoraddress
+* vendorcity
+* vendorstate
+
+Jason to others: Still working here...
+```{r origin}
+#summary(cdebt_revised)
+c("legislativedistrict ", 1 - length(na.omit(cdebt_revised$legislativedistrict)) / length(cdebt_revised$legislativedistrict))
+1 - length(na.omit(cdebt_revised$position)) / length(cdebt_revised$position)
+1 - length(na.omit(cdebt_revised$jurisdictioncounty)) / length(cdebt_revised$jurisdictioncounty)
+1 - length(na.omit(cdebt_revised$code)) / length(cdebt_revised$code)
+1 - length(na.omit(cdebt_revised$description)) / length(cdebt_revised$description)
+1 - length(na.omit(cdebt_revised$vendoraddress)) / length(cdebt_revised$vendoraddress)
+1 - length(na.omit(cdebt_revised$vendorcity)) / length(cdebt_revised$vendorcity)
+1 - length(na.omit(cdebt_revised$vendorstate)) / length(cdebt_revised$vendorstate)
+```
+
+The MM/DD/YY format of the 3 date variables (fromdate, thrudate, debtdate) led to their factor classification, and simple use of as.Date does not yield YYYY year values (e.g., 2012 is read as 0012). To obtain useful data for each of these variables in a single line of code, we coerced from factor to date and then corrected mathematically as neeed (effectively adding 2000 years).
 ```{r dates}
 cdebt_revised$thrudate = as.Date(cdebt_revised$thrudate, "%m/%d/%Y")
 summary(cdebt_revised$thrudate)
-
-#cdebt_revised$fromdate = as.Date(cdebt_revised$fromdate, "%m/%d/%Y") + 365.25 * 2000 - 15
-#cdebt_revised$thrudate = as.Date(cdebt_revised$thrudate, "%m/%d/%Y") + 365.25 * 2000 - 15
-#$debtdate = as.Date(cdebt_revised$debtdate, "%m/%d/%Y") + 365.25 * 2000 - 15
-#summary(cdebt_revised$thrudate)
-
 newFromdate = as.Date(cdebt_revised$fromdate, "%m/%d/%Y") + 365.25 * 2000 - 15
 newThrudate = as.Date(cdebt_revised$thrudate, "%m/%d/%Y") + 365.25 * 2000 - 15
 newDebtdate = as.Date(cdebt_revised$debtdate, "%m/%d/%Y") + 365.25 * 2000 - 15
 summary(newThrudate)
-
-#Divya to Jason  : As you were modifyong the same variable cdebt_revised$* , running the chucks multiple times was 
-#messing up the calculations , Try running this data multiple times
-
 ``` 
 
-Following are some additional observations made while in Excel:
-
-    * Many filernames (and filerids) have multiple entries in the table. Consequently, a given person will be counted multiple times if corresponding rows aren't consolidated into a total or set of totals. Notably, a given filername is often associated with a variety of parties and offices. 
-    * There are 7 more levels for filerid (141) than for filername (134). This is due to 7 filernames that each have two corresponding filerid values. One possible explanation could be that two or more people who share the same name ran for office. 
-    * office2, legislativedistrict, jurisdiction, jurisdictioncounty, and jurisdictiontype are all related to one another -- but do not appear to be related to office. Online searches meanwhile show that of these, only office appears related to filername. 
+Following are some additional observations made while repairing the CSV file in Excel:
+* A given filername is often associated with a variety of parties and offices. In some cases (but probably not all) this could be due to different candidates having the same name; this might for instance apply to filernames with more than one filerid. 
+* Wherease office is related to filername, five variables (office2, legislativedistrict, jurisdiction, jurisdictioncounty, and jurisdictiontype) are all related to one another but do not appear to be related to office or filername. For example, Terri Jeffreys (http://www.terrijeffreys.org/2012/06/19/citizens-to-elect-terri-jeffreys/) ran for county commissioner (office) rather than governor (office2), and the corresponding jurisdiction ('GOVERNOR, OFFICE OF') would pertain to the latter. The relevance of these 5 variables is unclear. 
 
 Last, the dataset contains several variables that appear unlikely to contribute much or any information. 
-    * origin, filertype, recordtype: Factor has only one level. Some rows in recordtype are NA, but in these cases whole row is NA.
-    * electionyear: All values are either either 2012 or NA
-    
+* firstname, middleinitial, lastname: These are redundant to filername, as noted above.
+* origin, filertype, recordtype: Factor has only one level. Some rows in recordtype are NA, but in these cases whole row is NA.
+* electionyear: All values are either either 2012 or NA.
+
 Jason to Divya: I think these merit more analysis before including above, i.e., we need to demonstrate what we state. 
 Divya to Jason : Sure , will see if i can plot ggraphs
+* vendoraddress, vendorcity, vendorstate: vendorname might be used in lieu of these 4 variables
 
-    * firstname, middleinitial, lastname: these are presumably redundant to filername 
-    * vendoraddress, vendorcity, vendorstate: vendorname might be used in lieu of these 4 variables
-
-```{r origin}
+```{r uniform}
 summary(cdebt_revised$origin)
-``` 
-```{r filertype}
 summary(cdebt_revised$filertype)
-``` 
-```{r recordtype}
 summary(cdebt_revised$recordtype)
 ``` 
 ```{r electionyear}
@@ -388,7 +405,7 @@ main = " Debt distirbution wrt to Description" , las=2 , col = "#009E73")
 
 ## Analysis of Secondary Effects: What secondary variables might have confounding effects on the relationships you have identified? Explain how these variables affect your understanding of the data.
 
-#### Examine the relationships between amount and office and party
+### Examine the relationships between amount and office and party
 
 ```{r amountVsofficeVsParty}
 

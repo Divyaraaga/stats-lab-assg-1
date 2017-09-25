@@ -4,6 +4,7 @@ author: "Divya and Jason"
 date: "17 September 2017"
 output:
   word_document: default
+  pdf_document: default
   html_document: default
 ---
 
@@ -16,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 As a member of the campaign committee for an upcoming election, you are interested in knowing as much as possible about debt reported by candidates in previous elections. Using the monthly voter registration statistics for registered voters in Oregon from 2012, perform an exploratory analysis to help the agency address their goals.
 
 Jason to Divya: Not sure what you're doing here. I think we should restore the text originally included in the assignment. 
-Divya to jason : I copied it as is from candidateDebt.rmd file .. you can knit the file and check it
+Divya to jason : you can remove it
 
 Perform an exploratory analysis to understand 
 \begin{center}
@@ -101,7 +102,7 @@ par(mar = c(4,1,5,1))
 #### Describe your data set. What types of variables does it contain? How many observations are there?
 
 There were 28 variables in the original 'CandidateDebt.csv' file, and 1043 observations. The variable 'reportnumber' was of integer class, and the rest were factors with 1-141 levels. All were listed above (i.e., in the assignment), and no 'id' variable was present. 
-```{r variables}
+```{r oldCSV}
 str(cdebt_original)
 ```
 
@@ -111,7 +112,7 @@ We noticed right away that the 'legislativedistrict' header did not correspond t
 
 In addition, we noticed that a number of fields were empty or contained '#N/A' text. We converted these to 'NA' while loading the repaired CSV file, and found that this resulted in several columns (legislativedistrict,position,electionyear) changing from factor to int. Similarly, the key 'amount' variable changed from factor to num, thereby enabling quantitative analysis of debt. 
 
-```{r variables}
+```{r revisedCSV}
 cdebt_revised = data.frame(read.csv("CandidateDebt_Fixed.csv", stringsAsFactors = T, na.strings=c(NA,"NA","#N/A" ,"", " ")))
 str(cdebt_revised)
 ```
@@ -128,7 +129,7 @@ cdebt_original$debtdate = as.Date(cdebt_original$debtdate, "%m/%d/%Y") + 365.25 
 summary(cdebt_original$thrudate)
 ``` 
 
-```{r dates}
+```{r datesPlot}
 with(cdebt_original, plot(thrudate, amount))
 ```
 
@@ -207,6 +208,8 @@ barplot(office[order(office)], horiz = TRUE , las = 1, main ="Number of Debts by
 
 ```
 
+#### Examine the variable: vendor city
+
 Nearly 47% of entries are associated with vendorcity of Seattle, followed by Woodinville and Washington, D.C.
 ```{r vendorcity}
 
@@ -226,6 +229,7 @@ barplot(vendorcity[order(vendorcity)], horiz = TRUE , las = 1, main ="Number of 
 
 
 ```
+#### Examine the variable: description
 
 Fully 25% of entries have "RE-ORDER TEE SHIRTS" in the description field. 
 ```{r description}
@@ -371,4 +375,5 @@ main = " Debt distirbution wrt to Description" , las=2 , col = "#009E73")
 #ggplot(cdebt_revised, aes(x=cdebt_revised$amount, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
 
 ```
+
 ## Analysis of Secondary Effects: What secondary variables might have confounding effects on the relationships you have identified? Explain how these variables affect your understanding of the data.

@@ -430,3 +430,17 @@ ggplot(data=amount_office_party, aes(x=party, y=x, fill=office)) +
    multiple entries
 
 ## Conclusion: Summarize your exploratory analysis. What can you conclude based on your analysis?
+
+1) Real-World Data is very messy and can be influenced by:
+
+* data collection processes
+* metadata/data dictionary completeness
+* willful instructor sabotage
+* formatting for an audience/medium
+* encoding techniques
+* real-life scenarios (candidates changing their minds)
+* analysis of originally unintended scenarios
+
+2) Real-World Data Analysis is more meaningful if you apply domain knowledge to the data set and use whatever sources you have at your disposal (internet, industry knowledge, etc...) to understand what you are seeing; a good example is the inordinately large number of candidates that seemed to switch parties between Democrat and Republican. This happens in real-life, but based on anecdotal evidence (domain kknowledge) it doesn't happen very often. So when it seems like it is happening more than expected, digging in to understand what is really happening is critical. (eg., Gayle Hickey Tee-Shirt Re-orders are all Republican)
+
+3) ... more conclusions from Jason and Divya

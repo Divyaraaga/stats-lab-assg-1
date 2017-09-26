@@ -142,10 +142,10 @@ changing from a factor type to an integer type. Similarly, the key **amount** va
 factor type to a numeric type, thereby enabling quantitative analysis of debt. 
 
 ```{r revisedCSV}
-colNames <- c("reportnumber", "origin", "filerid", "filertype", "filername", "firstname", "middleinitial",
-              "lastname", "office", "office2", "legislativedistrict", "position", "party",
-              "jurisdiction", "jurisdictioncounty", "jurisdictiontype", "electionyear", 
-              "amount", "recordtype", "fromdate", "thrudate", "debtdate", "code",
+colNames <- c("reportnumber", "origin", "filerid", "filertype", "filername", "firstname", 
+              "middleinitial","lastname", "office", "office2", "legislativedistrict", 
+              "position", "party","jurisdiction", "jurisdictioncounty", "jurisdictiontype", 
+              "electionyear", "amount", "recordtype", "fromdate", "thrudate", "debtdate", "code",
               "description", "vendorname", "vendoraddress", "vendorcity", "vendorstate")
 cdebt_revised_interim <- read.csv("CandidateDebt.csv", col.names = colNames, stringsAsFactors = T,
                          na.strings = c(NA,"NA","#N/A" ,"", " "))
@@ -158,7 +158,8 @@ thereby confounding comparison with other variables as well.
 
 ```{r amountNAs}
 cdebt_revised = subset(cdebt_revised_interim,  !is.na(amount))
-#cdebt_revised = subset(cdebt_revised_interim,  !is.na(amount) & jurisdiction != "LEG DISTRICT 01 - SENATE")
+#cdebt_revised = subset(cdebt_revised_interim,  !is.na(amount) & 
+#jurisdiction != "LEG DISTRICT 01 - SENATE")
 #str(cdebt_revised)
 length(cdebt_original$amount) - length(cdebt_revised$amount)
 ```
@@ -169,14 +170,22 @@ to explore the dataset, we decided to keep them in the analysis and handle
 any evaluations that are impacted by NA values.
 
 ```{r origin}
-paste(c(round(1 - length(na.omit(cdebt_revised$legislativedistrict)) / length(cdebt_revised$legislativedistrict), 3), "(legislativedistrict)"), collapse = " ")
-paste(c(round(1 - length(na.omit(cdebt_revised$position)) / length(cdebt_revised$position), 3), "(position)"), collapse = " ")
-paste(c(round(1 - length(na.omit(cdebt_revised$jurisdictioncounty)) / length(cdebt_revised$jurisdictioncounty), 3), "(jurisdictioncounty)"), collapse = " ")
-paste(c(round(1 - length(na.omit(cdebt_revised$code)) / length(cdebt_revised$code), 3), "(code)"), collapse = " ")
-paste(c(round(1 - length(na.omit(cdebt_revised$description)) / length(cdebt_revised$description), 3), "(description)"), collapse = " ")
-paste(c(round(1 - length(na.omit(cdebt_revised$vendoraddress)) / length(cdebt_revised$vendoraddress), 3), "(vendoraddress)"), collapse = " ")
-paste(c(round(1 - length(na.omit(cdebt_revised$vendorcity)) / length(cdebt_revised$vendorcity), 3), "(vendorcity)"), collapse = " ")
-paste(c(round(1 - length(na.omit(cdebt_revised$vendorstate)) / length(cdebt_revised$vendorstate), 3), "(vendorstate)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$legislativedistrict)) / length(cdebt_revised$legislativedistrict), 3),
+        "(legislativedistrict)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$position)) / length(cdebt_revised$position), 3), "(position)"), 
+       collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$jurisdictioncounty)) / length(cdebt_revised$jurisdictioncounty), 3),
+        "(jurisdictioncounty)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$code)) / length(cdebt_revised$code), 3), "(code)"), 
+      collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$description)) / length(cdebt_revised$description), 3), 
+        "(description)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$vendoraddress)) / length(cdebt_revised$vendoraddress), 3),
+        "(vendoraddress)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$vendorcity)) / length(cdebt_revised$vendorcity), 3),
+        "(vendorcity)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$vendorstate)) / length(cdebt_revised$vendorstate), 3), 
+        "(vendorstate)"), collapse = " ")
 ```
 
 The MM/DD/YY format of the 3 date variables (**fromdate**, **thrudate**, **debtdate**)
@@ -260,7 +269,9 @@ and a histogram confirms the distribution is positively skewed.
 ```{r amount}
 amount = cdebt_revised$amount
 summary(amount)
-hist(cdebt_revised$amount, breaks = seq(0, 20000, by = 1000), main = "Histogram of the 'amount' variable",  border="black", col="#00A5DF", xlab = "Amount of debt" ,ylab="Number of debts", ylim = c(0, 800))
+hist(cdebt_revised$amount, breaks = seq(0, 20000, by = 1000), 
+     main = "Histogram of the 'amount' variable",  border="black", col="#00A5DF",
+     xlab = "Amount of debt" ,ylab="Number of debts", ylim = c(0, 800))
 ```
 
 Nearly 65% of filings (by count rather than amount) were by 
@@ -271,7 +282,9 @@ party <- table(cdebt_revised$party)
 round(summary(cdebt_revised$party) / length(cdebt_revised$party), 3)
 par(las=1, mar=c(5,10,2,1)) #Sets outside margins : b, l, t, r 
 colorPalette <- c("#E69F00", "#009E73", "#FF0000", "#0000FF") # I , N , R , D
-barplot(party[order(party)], horiz = TRUE , las = 1, main ="Number of Debts by Party" , xlab="No of Debts" ,cex.axis = .9 ,cex.names= 0.9 , col = colorPalette , xlim = c(0, 700))
+barplot(party[order(party)], horiz = TRUE , las = 1, main ="Number of Debts by Party" ,
+        xlab="No of Debts" ,cex.axis = .9 ,cex.names= 0.9 , col = colorPalette , 
+        xlim = c(0, 700))
 ```
 
 Most debt entries (nearly 54% of total) were filed by state representatives. 
@@ -281,7 +294,8 @@ State senators had the next-largest share, with 12% of the total count.
 round(summary(cdebt_revised$office) / length(cdebt_revised$office), 3)
 office <- table(cdebt_revised$office)
 par(las=1, mar=c(5,8,2, 1)) #Sets plot margins : b, l, t, r 
-barplot(office[order(office)], horiz = TRUE , las = 1, main ="Number of Debts by Office", xlab="No of Debts" ,cex.names=0.5 , col = terrain.colors(16),xlim = c(0, 600)) 
+barplot(office[order(office)], horiz = TRUE , las = 1, main ="Number of Debts by Office", 
+        xlab="No of Debts" ,cex.names=0.5 , col = terrain.colors(16),xlim = c(0, 600)) 
 ```
 
 Nearly 47% of entries are associated with vendorcity of Seattle, 
@@ -293,7 +307,8 @@ count_cities = subset(cdebt_revised, !is.na(vendorcity))
 round(length(count_Seattle$vendorcity) / length(count_cities$vendorcity),3)
 #vendorcity <- table(cdebt_revised$vendorcity)
 #par(las=1, mar=c(2.5,8,2, 0.8)) #Sets plot margins : b, l, t, r 
-#barplot(vendorcity[order(vendorcity)], horiz = TRUE , las = 1, main ="Number of debts by vendorcity", xlab="Number of debts" ,cex.names=0.5 , col = heat.colors(29) , xlim = c(0, 500)) 
+#barplot(vendorcity[order(vendorcity)], horiz = TRUE , las = 1, main ="Number of debts by vendorcity", 
+#xlab="Number of debts" ,cex.names=0.5 , col = heat.colors(29) , xlim = c(0, 500)) 
 ```
 
 Fully 25% of entries have "RE-ORDER TEE SHIRTS" in the description field. 
@@ -311,7 +326,10 @@ sortedDescription = description[order(description, decreasing = TRUE)]
 #sortedDescription[15:1]
 
 par(las=1, mar=c(2.5,10,2, 0.7)) #Sets plot margins : b, l, t, r 
-barplot(sortedDescription[15:1], horiz = TRUE , las = 1, main ="Number of debts by description\n for top 15 entries", xlab="Number of debts" ,cex.names=0.6 , col = terrain.colors(16) , xlim = c(0, 300) , width = 10) 
+barplot(sortedDescription[15:1], horiz = TRUE , las = 1, 
+        main ="Number of debts by description\n for top 15 entries", 
+        xlab="Number of debts" ,cex.names=0.6 , col = terrain.colors(16) , 
+        xlim = c(0, 300) , width = 10) 
 
 ```
 
@@ -327,7 +345,8 @@ for this variable increasing with time (i.e., probably issued sequentially).
 ```{r debtdate}
 #plot(cdebt_revised$reportnumber, amount)
 #abline(lm(amount ~ cdebt_revised$reportnumber))
-plot(formattedDebtdate, amount, main = "Debt 'amount' with respect to 'debtdate'", xlab = "debtdate")
+plot(formattedDebtdate, amount, main = "Debt 'amount' with respect to 'debtdate'",
+     xlab = "debtdate")
 abline(lm(amount ~ formattedDebtdate))
 ```
 
@@ -339,11 +358,14 @@ The aforementioned 2x difference in filing count does not explain this gap betwe
 ```{r totalAmountVsParty}
 amount_sum_party = tapply(cdebt_revised$amount, cdebt_revised$party, FUN=sum )
 (amount_sumK_party = amount_sum_party)
+options(scipen=5)
 # Still suggest having /1000 for easy reading and setting xlim
 
-par(las=1, mar=c(5,10,2,0.8))
+par(las=1, mar=c(5,10,2,1))
 colorTAPalette <- c( "#E69F00", "#009E73","#FF0000","#0000FF") # N , I , D , R
-barplot(amount_sumK_party[order(amount_sumK_party)], horiz = TRUE , las = 1, main ="Total Debt Amount by Party" , xlab="Total debt amount" ,cex.axis = .9 ,cex.names= 0.9 , col = colorTAPalette)
+barplot(amount_sumK_party[order(amount_sumK_party)], horiz = TRUE , las = 1, 
+        main ="Total Debt Amount by Party" , xlab="Total debt amount" ,cex.axis = .9 ,
+        cex.names= 0.9 , col = colorTAPalette , xlim=c(0,1200000))
 ```
 
 If there were more Democratic candidates than Republican candidates, 
@@ -357,7 +379,10 @@ amount_means_party[order(amount_means_party, decreasing = TRUE)]
 par(las=1, mar=c(5,10,2,0.8)) #Sets outside margins : b, l, t, r 
 colorMAPalette <- c( "#E69F00", "#FF0000","#009E73","#0000FF") # I , N , R , D
 
-barplot(amount_means_party[order(amount_means_party)], horiz = TRUE , las = 1, main ="Mean Debt Amount by Party" , xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.9 , col = colorMAPalette, xlim = c(0, 2000)) 
+barplot(amount_means_party[order(amount_means_party)], horiz = TRUE , las = 1, 
+        main ="Mean Debt Amount by Party" ,
+        xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.9 , 
+        col = colorMAPalette, xlim = c(0, 2000)) 
 ```
 
 A boxplot gives a better sense of the distribution, and provides the following insights:
@@ -372,9 +397,11 @@ A boxplot gives a better sense of the distribution, and provides the following i
 by(cdebt_revised$amount, cdebt_revised$party, median)
 
 par(las=1, mar=c(5,10,2,0.3)) #Sets outside margins : b, l, t, r 
-colorBAPalette <- c("#0000FF", "#E69F00", "#009E73", "#FF0000" ) # D , R , N , I <==> D , N , I , R
-boxplot(cdebt_revised$amount ~ party, cex.axis = .6, horizontal = TRUE ,data = cdebt_revised,
-main = "Debt amount by party", col = colorBAPalette, xlab = "Debt amounts")
+colorBAPalette <- c("#0000FF", "#E69F00", "#009E73", "#FF0000" ) 
+# D , R , N , I <==> D , N , I , R
+boxplot(cdebt_revised$amount ~ party, cex.axis = .6, horizontal = TRUE ,
+        data = cdebt_revised,main = "Debt amount by party",
+        col = colorBAPalette, xlab = "Debt amounts")
 ```
 
 ### Amount by Office
@@ -391,8 +418,10 @@ options(scipen=5)
 ```
 
 ```{r totalAmountVsOffice}
-par(las=1, mar=c(5,10,2,0.8)) #Sets outside margins : b, l, t, r 
-barplot(amount_sumK_office[order(amount_sumK_office)], horiz = TRUE , las = 1, main ="Total Debt Amount by Office" , xlab="Total debt amount" ,cex.axis = .8 ,cex.names= 0.6 , col = terrain.colors(16) , xlim=c(0, 800000) )
+par(las=1, mar=c(5,10,2,1.5)) #Sets outside margins : b, l, t, r 
+barplot(amount_sumK_office[order(amount_sumK_office)], horiz = TRUE , las = 1, 
+        main ="Total Debt Amount by Office" , xlab="Total debt amount" ,cex.axis = .8 ,
+        cex.names= 0.6 , col = terrain.colors(16) , xlim=c(0, 800000) )
 ```
 
 Comparing with mean values as before paints an entirely different picture: 
@@ -407,7 +436,9 @@ amount_means_office[order(amount_means_office, decreasing = TRUE)]
 ```{r meanAmountVsOffice}
 par(las=1, mar=c(5,10,6,0.8)) #Sets outside margins : b, l, t, r 
 
-barplot(amount_means_office[order(amount_means_office)], horiz = TRUE , las = 1, main ="Mean Debt Amount by Office" , xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.5 , col = terrain.colors(16), xlim = c(0, 4000)) 
+barplot(amount_means_office[order(amount_means_office)], horiz = TRUE , las = 1, 
+        main ="Mean Debt Amount by Office" , xlab="Mean debt amount" ,cex.axis = .9 ,
+        cex.names= 0.5 , col = terrain.colors(16), xlim = c(0, 4000)) 
 ```
 
 A boxplot again reveals considerable positive skew for all offices excepting appeals court judges, 
@@ -438,7 +469,9 @@ sortedMeans[15:1]
 ```{r meanAmountVsDescription}
 par(las=1, mar=c(3,12,2,1))#Sets outside margins : b, l, t, r 
 
-barplot(sortedMeans[15:1], horiz = TRUE , las = 1, main ="Mean Debt by Office" , xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.4 , col = terrain.colors(16), xlim = c(0, 20000)) 
+barplot(sortedMeans[15:1], horiz = TRUE , las = 1, main ="Mean Debt by Office" , 
+        xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.4 , 
+        col = terrain.colors(16), xlim = c(0, 20000)) 
 ```
 
 Median for Consulting is pulled away from the mean which indicates that the distribution is negatively skewed
@@ -452,7 +485,9 @@ sortedMedian[15:1]
 
 ```{r medianAmountVsDesc}
 par(las=1, mar=c(3,12,2,1))#Sets outside margins : b, l, t, r 
-barplot(sortedMedian[15:1], horiz = TRUE , las = 1, main ="Median Debt by Office" , xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.4 , col = terrain.colors(16), xlim = c(0, 20000)) 
+barplot(sortedMedian[15:1], horiz = TRUE , las = 1, main ="Median Debt by Office" , 
+        xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.4 , 
+        col = terrain.colors(16), xlim = c(0, 20000)) 
 
 ```
 ### Amount, Office, and Party
@@ -468,7 +503,8 @@ Another ex   : State Senator from Non Partisans have average debt of  2624 $ whe
 
 ```{r amountVsofficeVsParty}
 
-amount_office_party <- aggregate(x = cdebt_revised$amount, by = cdebt_revised[c("office", "party")], FUN = mean, na.rm=TRUE)
+amount_office_party <- aggregate(x = cdebt_revised$amount, by = cdebt_revised[c("office", "party")], 
+                                 FUN = mean, na.rm=TRUE)
 amount_office_party
 
 #Sets outside margins : b, l, t, r 

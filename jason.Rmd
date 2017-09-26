@@ -249,7 +249,7 @@ amount_sum_party = tapply(cdebt_revised$amount, cdebt_revised$party, FUN=sum )
 ```{r totalDebtVsParty}
 par(las=1, mar=c(5,10,2,0.8))
 colorTAPalette <- c( "#E69F00", "#009E73","#FF0000","#0000FF") # N , I , D , R
-barplot(amount_sumK_party[order(amount_sumK_party)], horiz = TRUE , las = 1, main ="Total Debt by Party" , xlab="Total debt amount" ,cex.axis = .9 ,cex.names= 0.9 , col = colorTAPalette)
+barplot(amount_sumK_party[order(amount_sumK_party)], horiz = TRUE , las = 1, main ="Total Debt Amount by Party" , xlab="Total debt amount" ,cex.axis = .9 ,cex.names= 0.9 , col = colorTAPalette)
 ```
 
 If there were more Democratic candidates than Republican candidates, it wouldn't necessarily be surprising to see Democrats spending more as a party than Republicans. To get a better sense of typical spending spending by candidates of each party, we plot the average. 
@@ -257,8 +257,9 @@ If there were more Democratic candidates than Republican candidates, it wouldn't
 ```{r meanAmountVsParty}
 par(las=1, mar=c(5,10,2,0.8)) #Sets outside margins : b, l, t, r 
 colorMAPalette <- c( "#E69F00", "#FF0000","#009E73","#0000FF") # I , N , R , D
-(amount_means_party = by(cdebt_revised$amount, cdebt_revised$party,  mean))
-barplot(amount_means_party[order(amount_means_party)], horiz = TRUE , las = 1, main ="Mean Debt by Party" , xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.9 , col = colorMAPalette, xlim = c(0, 2000)) 
+amount_means_party = by(cdebt_revised$amount, cdebt_revised$party,  mean)
+amount_means_party[order(amount_means_party, decreasing = TRUE)]
+barplot(amount_means_party[order(amount_means_party)], horiz = TRUE , las = 1, main ="Mean Debt Amount by Party" , xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.9 , col = colorMAPalette, xlim = c(0, 2000)) 
 ```
 
 A boxplot gives a better sense of the distribution, and provides the following insights:
@@ -271,7 +272,7 @@ by(cdebt_revised$amount, cdebt_revised$party, median)
 par(las=1, mar=c(5,10,2,0.3)) #Sets outside margins : b, l, t, r 
 colorBAPalette <- c("#0000FF", "#E69F00", "#009E73", "#FF0000" ) # D , R , N , I <==> D , N , I , R
 boxplot(cdebt_revised$amount ~ party, cex.axis = .6, horizontal = TRUE ,data = cdebt_revised,
-main = "Debt amount wrt to party", col = colorBAPalette, xlab = "Debt amount")
+main = "Debt amount by party", col = colorBAPalette, xlab = "Debt amount")
 
 #amount_office_party_filer <- aggregate(x = cdebt_revised$amount, by = cdebt_revised[c("office", "party","filername")], FUN = mean, na.rm=TRUE)
 #amount_office_party_filer
@@ -283,7 +284,7 @@ main = "Debt amount wrt to party", col = colorBAPalette, xlab = "Debt amount")
 #ggplot(cdebt_revised, aes(x=cdebt_revised$party, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
 ```
 
-### Amount wrt Office
+### Amount by Office
 
 Turning our attention to the relationship between office and debt amount, we see that state representatives filed 4x the amount filed by the second and third-highest offices (county commissioner and state senator, respectively).
 
@@ -292,24 +293,26 @@ amount_sum_office = tapply(cdebt_revised$amount, cdebt_revised$office, FUN=sum)
 options(scipen=5)
 (amount_sumK_office = amount_sum_office)
 par(las=1, mar=c(5,10,2,0.8)) #Sets outside margins : b, l, t, r 
-barplot(amount_sumK_office[order(amount_sumK_office)], horiz = TRUE , las = 1, main ="Total Debt by Office" , xlab="Total debt" ,cex.axis = .8 ,cex.names= 0.6 , col = terrain.colors(16) , )
+barplot(amount_sumK_office[order(amount_sumK_office)], horiz = TRUE , las = 1, main ="Total Debt Amount by Office" , xlab="Total debt amount" ,cex.axis = .8 ,cex.names= 0.6 , col = terrain.colors(16) , )
 ```
 
-Comparing with mean values as before, we find that appeals court judges have relatively high debt. 
+Comparing with mean values as before paints an entirely different picture: We see that appeals court judges appear to have relatively high debt on an individual basis, and state representatives drop toward the lower end of the scale. 
 
 ```{r meanAmountVsOffice}
 par(las=1, mar=c(5,10,6,0.8)) #Sets outside margins : b, l, t, r 
-(amount_means_office = by(cdebt_revised$amount, cdebt_revised$office,  mean, na.rm = TRUE))
-barplot(amount_means_office[order(amount_means_office)], horiz = TRUE , las = 1, main ="Mean Debt by Office" , xlab="Mean debt" ,cex.axis = .9 ,cex.names= 0.5 , col = terrain.colors(16), xlim = c(0, 4000)) 
-
+amount_means_office = by(cdebt_revised$amount, cdebt_revised$office,  mean, na.rm = TRUE)
+amount_means_office[order(amount_means_office, decreasing = TRUE)]
+barplot(amount_means_office[order(amount_means_office)], horiz = TRUE , las = 1, main ="Mean Debt Amount by Office" , xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.5 , col = terrain.colors(16), xlim = c(0, 4000)) 
 ```
 
-
+A boxplot again reveals considerable positive skew for all offices excepting appeals court judges, which had no outliers but still exhibited substantial positive skew. Furthermore, the median was around 300 for all offices except appeals court judges, which had a median of nearly 10x this value. 
 
 ```{r amountVsOffice}
+amount_medians_office = by(cdebt_revised$amount, cdebt_revised$office, median, na.rm = TRUE)
+amount_medians_office[order(amount_medians_office, decreasing = TRUE)]
 par(las=1, mar=c(3,10,2,0.3)) #Sets outside margins : b, l, t, r 
 boxplot(cdebt_revised$amount ~ office, data = cdebt_revised, cex.axis = .6, horizontal = TRUE ,
-main = "Amount wrt to 'office' Variable" , las=2 , col = "#DDA266")
+main = "Debt Amount by Office" , las=2 , col = "#DDA266")
 
 # (candidate_party_office_amount) vs office
 #boxplot(x ~ office, data = amount_office_party_filer, cex.axis = .6, log='x', horizontal = TRUE ,
@@ -322,35 +325,19 @@ main = "Amount wrt to 'office' Variable" , las=2 , col = "#DDA266")
 
 ```
 
+### Amount by Description
 
-```{r}
-summary(cdebt_revised$amount)
+
+
+```{r meanAmountVsDescription}
+par(las=1, mar=c(5,10,6,0.8)) #Sets outside margins : b, l, t, r 
+amount_means_description = by(cdebt_revised$amount, cdebt_revised$description,  mean, na.rm = TRUE)
+sortedMeans = amount_means_description[order(amount_means_description, decreasing = TRUE)]
+sortedMeans[1:10]
+barplot(sortedMeans[1:10][order(sortedMeans[1:10])], horiz = TRUE , las = 1, main ="Mean Debt by Description" , xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.5 , col = terrain.colors(16)) 
 ```
 
-1. We noticed though state representative has more number of debts , but
-   the total amount is between $5 to $1000 with the maximum debt amount between $300 and $750 
-   in the interquartile region
-
-2. Median of the debt amount is at $300 as confirmed by the boxplots
-
-3. The boxplots indicate that the debt amounts are almost around the same interquartile region
-   which means that the debt amount for all the candidates are in the same range irrespective of their served offices 
-
-### Examine the relationships between description of the debt and the Amount
-
-```{r amountVsDesc}
-
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(3,10,2,0.3))
-
-boxplot(cdebt_revised$amount ~ description, data = cdebt_revised, cex.axis = .6, log='x', horizontal = TRUE ,
-main = " Debt distirbution wrt to Description" , las=2 , col = "#009E73")
-
-#ggplot(cdebt_revised, aes(x=cdebt_revised$amount, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
-
-```
-
-#### Examine the relationships between amount vs office vs party
+### Amount, Office, and Party
 
 ```{r amountVsofficeVsParty}
 

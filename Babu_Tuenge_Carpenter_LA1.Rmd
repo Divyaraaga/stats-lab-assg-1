@@ -1,6 +1,6 @@
 ---
 title: "Candidate Debt Exploration"
-author: "Divya Babu, Jason Tuenge, and Steve Carpenter"
+author: "Divya Kukati, Jason Tuenge, and Steve Carpenter"
 date: "25 September 2017"
 output:
   word_document: default
@@ -14,9 +14,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Background
 
-As members of the campaign committee for an upcoming election, we would be interested in knowing as much as possible about debt reported by candidates in previous elections. Using the monthly voter registration statistics for registered voters in Oregon from 2012, we performed an exploratory analysis to help the agency address their goals. Our objectie was to understand how campaign characteristics are related to the candidates debt.
+As members of the campaign committee for an upcoming election, we would be interested in knowing
+as much as possible about debt reported by candidates in previous elections. Using the monthly
+voter registration statistics for registered voters in Oregon from 2012, we performed an 
+exploratory analysis to help the agency address their goals. Our objectie was to understand 
+how campaign characteristics are related to the candidates debt.
 
-We Were given a dataset on voter registration from 2012 **"CandidateDebt.csv"**.  The dependent (or target) variable in this data is named "amount". We were told that the labels of the variables would be as listed below, and that the rest of the variables should be self-explanatory
+We Were given a dataset on voter registration from 2012 **"CandidateDebt.csv"**.  The dependent 
+(or target) variable in this data is named "amount". We were told that the labels of the variables
+would be as listed below, and that the rest of the variables should be self-explanatory
 
 **id**: internal identifier that corresponds to a single expenditure record. 
 **reportnumber**: identifier used for tracking the individual form 
@@ -51,12 +57,15 @@ We Were given a dataset on voter registration from 2012 **"CandidateDebt.csv"**.
 
 ## Introduction
 
-The research question that motivated our analysis was: How are campaign characteristics related to the candidates debt?
+The research question that motivated our analysis was: 
+How are campaign characteristics related to the candidates debt?
 
 ## Initial File Analysis
 ### Describe your data set. What types of variables does it contain? How many observations are there?
 
-The Data is in a file called "CandidateDebt.csv" which has 28 variables and 1043 observations. The variable **reportnumber** was of integer class, and the rest were factors with 1-141 levels. All were listed above (i.e., in the assignment), and no 'id' variable was present.
+The Data is in a file called "CandidateDebt.csv" which has 28 variables and 1043 observations. 
+The variable **reportnumber** was of integer class, and the rest were factors with 1-141 levels. 
+All were listed above (i.e., in the assignment), and no 'id' variable was present.
 
 ```{r car}
 library(car)
@@ -68,15 +77,23 @@ str(cdebt_original)
 ```
 
 
-### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential issues. Explain whether any data processing or preparation is required for your data set.
+### Evaluate the data quality. Are there any issues with the data? Explain how you handled these potential 
+###issues. Explain whether any data processing or preparation is required for your data set.
 
 It is already apparent that:
 
 * As we would hope, each **reportnumber** is unique. 
-* Similarly, there are as many unique **filernames** as unique [**lastname**, **firstname**, **middlename**] triples.
-* There are more than 7 **reportnumbers** per **filerid** on average. Consequently, a given person will be counted multiple times if corresponding rows aren't consolidated into a total or set of totals. 
-* There are 7 more levels for **filerid** than for **filername**. In all cases, simple internet searches revealed that candidates had held one office going into the campaign and ran for a different office for the 2012 election (**filername** in "FROCKT DAVID S", "KELLEY TROY X", "MCKENNA ROBERT M", "PROBST TIMOTHY P", "WILLIAMS BRENDAN W"), held one office and been appointed another mid-term and by the 2012 election ran for the appointed office (**filername** == "ROLFES CHRISTINE N"), or held no office and started running for one office but ultimately changed their campaign to run for a different office at the end of the election (**filername** == "LADENBURG JOHN W SR").
-
+* Similarly, there are as many unique **filernames** as unique 
+  [**lastname**, **firstname**, **middlename**] triples.
+* There are more than 7 **reportnumbers** per **filerid** on average. Consequently, a given person will be 
+  counted multiple times if corresponding rows aren't consolidated into a total or set of totals. 
+* There are 7 more levels for **filerid** than for **filername**. In all cases, simple internet 
+  searches revealed that candidates had held one office going into the campaign and ran for a different 
+  office for the 2012 election (**filername** in "FROCKT DAVID S", "KELLEY TROY X", "MCKENNA ROBERT M",
+  "PROBST TIMOTHY P", "WILLIAMS BRENDAN W"), held one office and been appointed another mid-term and 
+  by the 2012 election ran for the appointed office (**filername** == "ROLFES CHRISTINE N"), 
+  or held no office and started running for one office but ultimately changed their campaign to 
+  run for a different office at the end of the election (**filername** == "LADENBURG JOHN W SR").
 
 References:
 
@@ -88,7 +105,7 @@ References:
 * https://ballotpedia.org/Tim_Probst
 * https://ballotpedia.org/Brendan_Williams
 
-```{r}
+```{r uniqueValues}
 length(cdebt_original$reportnumber) - length(unique(cdebt_original$reportnumber))
 
 comb_fmlnames <- length(sort(unique(paste(cdebt_original$lastname, 
@@ -102,7 +119,15 @@ length(unique(cdebt_original$reportnumber)) / length(unique(cdebt_original$filer
 length(unique(cdebt_original$filerid)) - length(unique(cdebt_original$filername))
 ```
 
-When we reviewed the file we found what seemed to be an undocumented extra column right after the **office** column that was similar in nature but it offset the headers for the rest of the columns. For instance, the **legislativedistrict** data was now under the **position** header, the **party** data was under the **jurisdiction** header, etc... For example, 'DEMOCRAT' should refer to party rather than to jurisdiction. We verified that the **office** column was setup correctly by selecting multiple records and doing an internet search to see what office the specific person (**filername**) was campaigning for in Washington State in 2012. For instance, Sheryl McCloud (**filername** == "MCCLOUD SHERYL G") ran for State Supreme Court Justice and won the seat in 2012. The other field stated she is somehow linked to a State Representative seat of which there is no evidence for that that we could find.
+When we reviewed the file we found what seemed to be an undocumented extra column right after the **office** 
+column that was similar in nature but it offset the headers for the rest of the columns. 
+For instance, the **legislativedistrict** data was now under the **position** header, the **party** 
+data was under the **jurisdiction** header, etc... For example, 'DEMOCRAT' should refer to party 
+rather than to jurisdiction. We verified that the **office** column was setup correctly by selecting 
+multiple records and doing an internet search to see what office the specific person (**filername**) 
+was campaigning for in Washington State in 2012. For instance, Sheryl McCloud (**filername** == "MCCLOUD SHERYL G") 
+ran for State Supreme Court Justice and won the seat in 2012. The data in the extraneous columnn indicated 
+that she is somehow linked to a State Representative seat; we couldn't find any evidence of this online.
 
 References:
 
@@ -110,10 +135,14 @@ References:
     * http://sdc.wastateleg.org/frockt/
     * https://ballotpedia.org/Washington_elections,_2012
 
-We decided to relabel this phantom column to **office2**. In addition, we observed that a number of fields were empty or contained '#N/A' text. We converted these to 'NA' while loading the repaired CSV file, and found that this resulted in several columns (**legislativedistrict**, **position**, **electionyear**) changing from a factor type to an integer type. Similarly, the key **amount** variable changed from a factor type to a numeric type, thereby enabling quantitative analysis of debt. 
+We decided to relabel this phantom column to **office2**. In addition, we observed that a number of 
+fields were empty or contained '#N/A' text. We converted these to 'NA' while loading the repaired CSV file, 
+and found that this resulted in several columns (**legislativedistrict**, **position**, **electionyear**) 
+changing from a factor type to an integer type. Similarly, the key **amount** variable changed from a 
+factor type to a numeric type, thereby enabling quantitative analysis of debt. 
 
 ```{r revisedCSV}
-colNames <- c("origin", "filerid", "filertype", "filername", "firstname", "middleinitial",
+colNames <- c("reportnumber", "origin", "filerid", "filertype", "filername", "firstname", "middleinitial",
               "lastname", "office", "office2", "legislativedistrict", "position", "party",
               "jurisdiction", "jurisdictioncounty", "jurisdictiontype", "electionyear", 
               "amount", "recordtype", "fromdate", "thrudate", "debtdate", "code",
@@ -123,63 +152,95 @@ cdebt_revised_interim <- read.csv("CandidateDebt.csv", col.names = colNames, str
 str(cdebt_revised_interim)
 ```
 
-We then removed the 56 rows containing NA values in the **amount** column, as these could not be quantitatively related to debt. In fact, these rows were mostly comprised of NA values, thereby confounding comparison with other variables as well.
+We then removed the 56 rows containing NA values in the **amount** column, as these could not be 
+quantitatively related to debt. In fact, these rows were mostly comprised of NA values, 
+thereby confounding comparison with other variables as well.
 
-```{r amount}
+```{r amountNAs}
 cdebt_revised = subset(cdebt_revised_interim,  !is.na(amount))
 #cdebt_revised = subset(cdebt_revised_interim,  !is.na(amount) & jurisdiction != "LEG DISTRICT 01 - SENATE")
-str(cdebt_revised)
+#str(cdebt_revised)
 length(cdebt_original$amount) - length(cdebt_revised$amount)
 ```
 
-A number of variables were still substantially comprised of NA values:
-
-* **legislativedistrict**
-* **position**
-* **jurisdictioncounty**
-* **code**
-* **description**
-* **vendoraddress**
-* **vendorcity**
-* **vendorstate**
-
-As is typical in data analysis, since these values were not impacting our ability to explore the dataset, we decided to keep them in the analysis and handle any evaluations that are impacted by NA values.
+A number of variables were still substantially comprised of NA values.
+As is typical in data analysis, since these values were not impacting our ability 
+to explore the dataset, we decided to keep them in the analysis and handle 
+any evaluations that are impacted by NA values.
 
 ```{r origin}
-1 - length(na.omit(cdebt_revised$legislativedistrict)) / length(cdebt_revised$legislativedistrict)
-1 - length(na.omit(cdebt_revised$position)) / length(cdebt_revised$position)
-1 - length(na.omit(cdebt_revised$jurisdictioncounty)) / length(cdebt_revised$jurisdictioncounty)
-1 - length(na.omit(cdebt_revised$code)) / length(cdebt_revised$code)
-1 - length(na.omit(cdebt_revised$description)) / length(cdebt_revised$description)
-1 - length(na.omit(cdebt_revised$vendoraddress)) / length(cdebt_revised$vendoraddress)
-1 - length(na.omit(cdebt_revised$vendorcity)) / length(cdebt_revised$vendorcity)
-1 - length(na.omit(cdebt_revised$vendorstate)) / length(cdebt_revised$vendorstate)
+paste(c(round(1 - length(na.omit(cdebt_revised$legislativedistrict)) / length(cdebt_revised$legislativedistrict), 3), "(legislativedistrict)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$position)) / length(cdebt_revised$position), 3), "(position)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$jurisdictioncounty)) / length(cdebt_revised$jurisdictioncounty), 3), "(jurisdictioncounty)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$code)) / length(cdebt_revised$code), 3), "(code)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$description)) / length(cdebt_revised$description), 3), "(description)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$vendoraddress)) / length(cdebt_revised$vendoraddress), 3), "(vendoraddress)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$vendorcity)) / length(cdebt_revised$vendorcity), 3), "(vendorcity)"), collapse = " ")
+paste(c(round(1 - length(na.omit(cdebt_revised$vendorstate)) / length(cdebt_revised$vendorstate), 3), "(vendorstate)"), collapse = " ")
 ```
 
-The **fromdate**, **thrudate**, and **debtdate** columns can be treated as date columns as follows: 
-
-The MM/DD/YY format of the 3 date variables (fromdate, thrudate, debtdate) led to their factor classification, and simple use of as.Date does not yield YYYY year values (e.g., 2012 is read as 0012). To obtain useful data for each of these variables in a single line of code, we coerced from factor to date and then corrected mathematically as neeed (effectively adding 2000 years).
+The MM/DD/YY format of the 3 date variables (**fromdate**, **thrudate**, **debtdate**)
+led to their factor classification. To obtain useful data, We coerced from factor to date.
 
 ```{r dates}
-summary(cdebt_revised$debtdate)
+#summary(cdebt_revised$debtdate)
 formattedFromdate <- as.Date(as.character(cdebt_revised$fromdate), format = "%m/%d/%y")
 formattedThrudate <- as.Date(as.character(cdebt_revised$thrudate), format = "%m/%d/%y")
 formattedDebtdate <- as.Date(as.character(cdebt_revised$debtdate), format = "%m/%d/%y")
 summary(formattedDebtdate)
 ``` 
 
-Following are some additional observations made while repairing the CSV file in Excel:
+Following are some additional observations made while repairing the CSV file:
 
-* All records associated with **vendorname** == "HICKEY GAYLE" are labeled as **party** == "REPUBLICAN" regardless of the party of the candidate in public records and in the data set for other debt transactions. This has the effect that analysis on party will show records for some candidates as both DEMOCRAT and REPUBLICAN This is incorrect and should be fixed based on the candidate's official party alignment. We did some analysis and in no cases did the sample we selected switch from DEMOCRAT to REPUBLICAN or vice versa.
-* Both **party** == "INDEPENDENT" records in the data set are also affiliated with a single **vendorname** == "JEFFREYS TERRI M" who just so happens to be a candidate for Mason County Commissioner affiliated as an INDEPENDENT. In some records she is labelled as a DEMOCRAT, in others as a REPUBLICAN (but only in the "HICKEY GAYLE" scenario identified above), and with regard to Postage as an INDEPENDENT. Because the new sources label her as an INDEPENDENT and most of the records label her as a DEMOCRAT, we will not change the party affiliation. The other candidate who used the **vendorname** == "JEFFREYS TERRI M" was a DEMOCRAT named David Frockt. It is assumed he likely shared the cost of postage with Ms Jeffreys and the record was labeled incorrectly.
-* Wherease **office** is related to filername, five variables (**office2**, **legislativedistrict**, **jurisdiction**, **jurisdictioncounty**, and **jurisdictiontype**) are all related to one another but do not appear to be related to **office** or **filername**. For example, Terri Jeffreys (http://www.terrijeffreys.org/2012/06/19/citizens-to-elect-terri-jeffreys/) ran for county commissioner (**office**) rather than governor (**office2**), and the corresponding jurisdiction ('GOVERNOR, OFFICE OF') would pertain to the latter. The relevance of these 5 variables is unclear. 
+* All records associated with **vendorname** == "HICKEY GAYLE" are labeled as **party** == "REPUBLICAN" 
+  regardless of the party of the candidate in public records and in the data set for other debt transactions. 
+  This has the effect that analysis on party will show records for some candidates as both DEMOCRAT and REPUBLICAN. 
+  This is incorrect and should be fixed based on the candidate's official party alignment. 
+  We did some analysis and in no cases did the sample we selected switch from DEMOCRAT to REPUBLICAN or vice versa.
+  
+* Both **party** == "INDEPENDENT" records in the data set are also affiliated 
+  with a single **vendorname** == "JEFFREYS TERRI M" who just so happens to be a candidate for 
+  Mason County Commissioner affiliated as an INDEPENDENT. In some records she is labelled as a DEMOCRAT, 
+  in others as a REPUBLICAN (but only in the "HICKEY GAYLE" scenario identified above), 
+  and with regard to Postage as an INDEPENDENT. Because the new sources label her as an INDEPENDENT and 
+  most of the records label her as a DEMOCRAT, we will not change the party affiliation. 
+  The other candidate who used the **vendorname** == "JEFFREYS TERRI M" was a DEMOCRAT named David Frockt. 
+  It is assumed he likely shared the cost of postage with Ms Jeffreys and the record was labeled incorrectly.
+  
+* Whereas **office** is related to filername, five variables 
+  (**office2**, **legislativedistrict**, **jurisdiction**, **jurisdictioncounty**, and **jurisdictiontype**) 
+  are all related to one another but do not appear to be related to **office** or **filername**.
+  For example, Terri Jeffreys (http://www.terrijeffreys.org/2012/06/19/citizens-to-elect-terri-jeffreys/) 
+  ran for county commissioner (**office**) rather than governor (**office2**), 
+  and the corresponding jurisdiction ('GOVERNOR, OFFICE OF') would pertain to the latter. 
+  The relevance of these 5 variables is unclear. 
 
+```{r vendors}
+hic <- sum(cdebt_revised$vendorname == "HICKEY GAYLE")
+hicrep <- sum((cdebt_revised$vendorname == "HICKEY GAYLE") & 
+              (cdebt_revised$party == "REPUBLICAN"))
+hic - hicrep
+
+sum(cdebt_revised$vendorname == "JEFFREYS TERRI M")
+sub_tjven <- subset(cdebt_revised, vendorname ==  "JEFFREYS TERRI M",
+                    c(filername, party, vendorname))
+sub_tjven
+sub_tjdfc <- subset(cdebt_revised, ((filername == "JEFFREYS TERRI M") |
+                                    (filername == "FROCKT DAVID S")),
+                    c(filername, party, vendorname))
+sub_tjdfc[order(sub_tjdfc$filername),]
+
+sub_tjoff <- subset(cdebt_revised, (filername == "JEFFREYS TERRI M"),
+                    c(filername, office, office2))
+sub_tjoff
+```
 
 Last, the dataset contains several variables that appear unlikely to contribute much or any information:
 
-* **firstname**, **middleinitial**, **lastname**: These are redundant to **filername**, as noted above.
-* **origin**, **filertype**, **recordtype**: Factor has only one level. Some rows in **recordtype** are NA, but in these cases the entire row is NA.
-* **electionyear**: All values are either either 2012 or NA.
+  * **firstname**, **middleinitial**, **lastname**: These are redundant to **filername**, as noted above.
+  * **origin**, **filertype**, **recordtype**: Factor has only one level.
+    Some rows in **recordtype** are NA, but in these cases the entire row is NA.
+  * **electionyear**: All values are either either 2012 or NA.
 
 ```{r uniform}
 summary(cdebt_revised$origin)
@@ -191,269 +252,230 @@ summary(cdebt_revised$electionyear)
 
 ## Univariate Analysis of Key Variables: Use visualizations and descriptive statistics to perform a univariate analysis of each key variable. Be sure to describe any anomalies, coding issues, or potentially erroneous values. Explain how you respond to each issue you identify. Note any features that appear relevant to statistical analysis. Discuss what transformations may be appropriate for each variable.
 
-The 'amount' values are all positive and range from around 3 to 19,000 (units are unclear but are presumably dollars or perhaps thousands of dollars). The mean is more than 4x the median, and a histogram confirms the distribution is positively skewed.
+The 'amount' values are all positive and range from around 3 to 19,000 
+(units are unclear but are presumably dollars or perhaps thousands of dollars), 
+with most values below 1,000. The mean is more than 4x the median, 
+and a histogram confirms the distribution is positively skewed. 
 
-Divya to Jason : Most of the Debt amount is between 0 to 1000$
-```{r}
+```{r amount}
 amount = cdebt_revised$amount
 summary(amount)
-hist(cdebt_revised$amount, breaks = seq(0, 20000, by = 1000), main = "Histogram of the 'amount' variable",  border="black", col="#00A5DF", xlab = "Amount of Debt in $" ,ylab="No of Debts", ylim = c(0, 800))
-
+hist(cdebt_revised$amount, breaks = seq(0, 20000, by = 1000), main = "Histogram of the 'amount' variable",  border="black", col="#00A5DF", xlab = "Amount of debt" ,ylab="Number of debts", ylim = c(0, 800))
 ```
 
-### Examine the variable: Party
+Nearly 65% of filings (by count rather than amount) were by 
+Democrats -- more than twice the number filed by Republicans.  
 
-Nearly 65% of filings (by count rather than amount) were by Democrats -- more than twice the number filed by Republicans.  
 ```{r party}
-
 party <- table(cdebt_revised$party)
-length(cdebt_revised$party)
-summary(cdebt_revised$party)
-
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,2,1))
-
-colorPalette <- c("#E69F00", "#009E73", "#FF0000", "#0000FF")
-# I , N , R , D
-
+round(summary(cdebt_revised$party) / length(cdebt_revised$party), 3)
+par(las=1, mar=c(5,10,2,1)) #Sets outside margins : b, l, t, r 
+colorPalette <- c("#E69F00", "#009E73", "#FF0000", "#0000FF") # I , N , R , D
 barplot(party[order(party)], horiz = TRUE , las = 1, main ="Number of Debts by Party" , xlab="No of Debts" ,cex.axis = .9 ,cex.names= 0.9 , col = colorPalette , xlim = c(0, 700))
-
 ```
-### Examine the variable: office 
 
-Most debt entries (about 51% of total) were filed by state representatives. State senators had the next-largest share, with less than 14% of the total count.
+Most debt entries (nearly 54% of total) were filed by state representatives. 
+State senators had the next-largest share, with 12% of the total count.
+
 ```{r office}
-
-length(cdebt_revised$office)
-summary(cdebt_revised$office)
-
+round(summary(cdebt_revised$office) / length(cdebt_revised$office), 3)
 office <- table(cdebt_revised$office)
-#Sets plot margins : b, l, t, r 
-par(las=1, mar=c(5,8,2, 1))
-
+par(las=1, mar=c(5,8,2, 1)) #Sets plot margins : b, l, t, r 
 barplot(office[order(office)], horiz = TRUE , las = 1, main ="Number of Debts by Office", xlab="No of Debts" ,cex.names=0.5 , col = terrain.colors(16),xlim = c(0, 600)) 
-
 ```
 
-### Examine the variable: vendorcity
+Nearly 47% of entries are associated with vendorcity of Seattle, 
+followed by Woodinville and Washington, D.C.
 
-Nearly 47% of entries are associated with vendorcity of Seattle, followed by Woodinville and Washington, D.C.
 ```{r vendorcity}
-
-#length(cdebt_revised$vendorcity)
-#str(cdebt_revised$vendorcity)
-#summary(cdebt_revised$vendorstate)
-
 count_Seattle = subset(cdebt_revised, vendorcity == "SEATTLE")
 count_cities = subset(cdebt_revised, !is.na(vendorcity))
-(share_Seattle = length(count_Seattle$vendorcity) / length(count_cities$vendorcity))
-
-vendorcity <- table(cdebt_revised$vendorcity)
-#Sets plot margins : b, l, t, r 
-par(las=1, mar=c(2.5,8,2, 0.8))
-
-barplot(vendorcity[order(vendorcity)], horiz = TRUE , las = 1, main ="Number of debts by vendorcity", xlab="Number of debts" ,cex.names=0.5 , col = heat.colors(29) , xlim = c(0, 500)) 
-
-
+round(length(count_Seattle$vendorcity) / length(count_cities$vendorcity),3)
+#vendorcity <- table(cdebt_revised$vendorcity)
+#par(las=1, mar=c(2.5,8,2, 0.8)) #Sets plot margins : b, l, t, r 
+#barplot(vendorcity[order(vendorcity)], horiz = TRUE , las = 1, main ="Number of debts by vendorcity", xlab="Number of debts" ,cex.names=0.5 , col = heat.colors(29) , xlim = c(0, 500)) 
 ```
-### Examine the variable: description
 
 Fully 25% of entries have "RE-ORDER TEE SHIRTS" in the description field. 
+This factor level appears more frequently than the next three levels 
+(CONSULTING/TRAVEL, ACCOUNTING/COMPLIANCE, NOVEMBER TREASURY) combined. 
+
 ```{r description}
-#length(cdebt_revised$description)
-#summary(cdebt_revised$description)
+count_shirts = subset(cdebt_revised, description == "RE-ORDER TEE SHIRTS")
+count_descriptions = subset(cdebt_revised, !is.na(description))
+round(length(count_shirts$description) / length(count_descriptions$description),3)
+
+# Top 15 entries 
 description <- table(cdebt_revised$description)
+sortedDescription = description[order(description, decreasing = TRUE)]
+#sortedDescription[15:1]
 
-#Sets plot margins : b, l, t, r 
-par(las=1, mar=c(2.5,8,2, 0.7))
-
-barplot(description[order(description)], horiz = TRUE , las = 1, main ="Number of debts by description", xlab="Number of debts" ,cex.names=0.3 , col = terrain.colors(16) , xlim = c(0, 300) , width = 10) 
-
-#qplot(cdebt_revised$description , ylab="Number of debts", geom="bar", fill="Nature of the debt") + scale_x_discrete(label=function(x) abbreviate(x, minlength=7)) + coord_flip()
-#theme(axis.text.y=element_text(angle=90,hjust=1,vjust=0)) 
-
-#ggplot(data=cdebt_revised, aes(x=description)) + geom_bar(stat="identity")
-
-# [Divya to myself] Set axis till end
-# spacing between plots 
+par(las=1, mar=c(2.5,10,2, 0.7)) #Sets plot margins : b, l, t, r 
+barplot(sortedDescription[15:1], horiz = TRUE , las = 1, main ="Number of debts by description\n for top 15 entries", xlab="Number of debts" ,cex.names=0.6 , col = terrain.colors(16) , xlim = c(0, 300) , width = 10) 
 
 ```
 
 ## Analysis of Key Relationships: Explore how your outcome variable is related to the other variables in your dataset. Make sure to use visualizations to understand the nature of each bivariate relationship. What tranformations can you apply to clarify the relationships you see in the data? Be sure to justify each transformation you use.
 
-Each value of 'reportnumber' is unique (# of levels = # of observations).
-```{r reportnumber}
-(length(cdebt_revised$reportnumber) - length(unique(cdebt_revised$reportnumber)))
-``` 
+### Debt Date
 
-There seems to be a surge in debts in the middle of the reportnumber range, presumably due to values for this variable increasing with time (i.e., apparently issued sequentially).
-```{r}
-plot(formattedDebtdate, amount)
-#abline(lm(amount ~ newDebtdate))
+Although **amount** at first glance appeared to increase with **debtdate**, 
+there was no real correlation.  We also observed that there seems to be a 
+surge in debts in the middle of the reportnumber range, presumably due to values 
+for this variable increasing with time (i.e., probably issued sequentially).
+
+```{r debtdate}
+#plot(cdebt_revised$reportnumber, amount)
+#abline(lm(amount ~ cdebt_revised$reportnumber))
+plot(formattedDebtdate, amount, main = "Debt 'amount' with respect to 'debtdate'", xlab = "debtdate")
+abline(lm(amount ~ formattedDebtdate))
 ```
 
-### Examine the target variable: Amount wrt to Party
+### Amount by Party
 
-Lets first examine Total Amount wrt to Party :
+Most of the debt was filed by Democrats -- nearly 10x the amount filed by Republicans. 
+The aforementioned 2x difference in filing count does not explain this gap between parties.
 
-Most of the debt is filed by Democrats -- more than 9x the amount filed by Republicans. The aforementioned 2x difference in filing count does not explain the gap between parties.
-```{r amount_sum_party}
+```{r totalAmountVsParty}
 amount_sum_party = tapply(cdebt_revised$amount, cdebt_revised$party, FUN=sum )
-(amount_sumK_party = amount_sum_party/1000)
-```
+(amount_sumK_party = amount_sum_party)
+# Still suggest having /1000 for easy reading and setting xlim
 
-```{r totalDebtVsParty}
 par(las=1, mar=c(5,10,2,0.8))
-
-colorTAPalette <- c( "#E69F00", "#009E73","#FF0000","#0000FF")
-# N , I , D , R
-
-barplot(amount_sumK_party[order(amount_sumK_party)], horiz = TRUE , las = 1, main ="Total Debt by Party" , xlab="Total Debt in K $" ,cex.axis = .9 ,cex.names= 0.9 , col = colorTAPalette , xlim = c(0, 1200))
-
+colorTAPalette <- c( "#E69F00", "#009E73","#FF0000","#0000FF") # N , I , D , R
+barplot(amount_sumK_party[order(amount_sumK_party)], horiz = TRUE , las = 1, main ="Total Debt Amount by Party" , xlab="Total debt amount" ,cex.axis = .9 ,cex.names= 0.9 , col = colorTAPalette)
 ```
 
-To better assess this relationship, We will plot the mean amount for each party.
-
-Divya to jason: Some text which can help you , the consolidated result of bar and boxplot
-
-Looking at the graphs for mean and median debt amont by party, We can say that
-1. Democrats : Debt amount has some outliers which the pulls the mean away from the median.
-2. Republicans : Mean and median of debts are very close
-3. Non partisans : outlier is pulling away the mean
-
+If there were more Democratic candidates than Republican candidates, 
+it wouldn't necessarily be surprising to see Democrats spending more as a party than Republicans. 
+To get a better sense of typical spending spending by candidates of each party, we plot the average. 
 
 ```{r meanAmountVsParty}
+amount_means_party = by(cdebt_revised$amount, cdebt_revised$party,  mean)
+amount_means_party[order(amount_means_party, decreasing = TRUE)]
 
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,2,0.8))
+par(las=1, mar=c(5,10,2,0.8)) #Sets outside margins : b, l, t, r 
+colorMAPalette <- c( "#E69F00", "#FF0000","#009E73","#0000FF") # I , N , R , D
 
-colorMAPalette <- c( "#E69F00", "#FF0000","#009E73","#0000FF")
-# I , N , R , D
-
-(amount_means_party = by(cdebt_revised$amount, cdebt_revised$party,  mean))
-
-barplot(amount_means_party[order(amount_means_party)], horiz = TRUE , las = 1, main ="Mean Debt by Party" , xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.9 , col = colorMAPalette, xlim = c(0, 2000)) 
-
+barplot(amount_means_party[order(amount_means_party)], horiz = TRUE , las = 1, main ="Mean Debt Amount by Party" , xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.9 , col = colorMAPalette, xlim = c(0, 2000)) 
 ```
 
-Let's check the distribution of debt amount through a boxplot    
+A boxplot gives a better sense of the distribution, and provides the following insights:
+* The distribution is quite positively skewed for Democrats, with outliers yielding an 
+  average that is more than 4x the median.
+* Similarly, an outlier results in substantial positive skew for non-partisan candidates.
+* The numerous 283.25 amounts in the Republican data generate a median of this value, 
+  with no interquartile range and multiple "outliers" that yields a relatively mild 
+  (in comparison to Democrats) positive skew in the distribution. 
 
-```{r debtDistriVsParty}
+```{r medianAmountVsParty}
+by(cdebt_revised$amount, cdebt_revised$party, median)
 
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,2,0.3))
-
-colorBAPalette <- c("#0000FF", "#E69F00", "#009E73", "#FF0000" )
-# D , R , N , I <==> D , N , I , R
-
-# Amount vs Party
-boxplot(cdebt_revised$amount ~ party,  horizontal = TRUE ,data = cdebt_revised, cex.axis = .6, log='x',
-main = "Amount wrt to 'office' party ", col = colorBAPalette)
-
-
-#amount_office_party_filer <- aggregate(x = cdebt_revised$amount, by = cdebt_revised[c("office", "party","filername")], FUN = mean, na.rm=TRUE)
-#amount_office_party_filer
-
-# (candidate_party_office_amount) vs party
-#boxplot(x ~ party, data = amount_office_party_filer, cex.axis = .6, log='x', horizontal = TRUE ,
-#main = "Total Candidate Debt Amount grouped by office&party \n vs Party" , las=2 , col = colorBAPalette)
-
-#ggplot(cdebt_revised, aes(x=cdebt_revised$party, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
-
+par(las=1, mar=c(5,10,2,0.3)) #Sets outside margins : b, l, t, r 
+colorBAPalette <- c("#0000FF", "#E69F00", "#009E73", "#FF0000" ) # D , R , N , I <==> D , N , I , R
+boxplot(cdebt_revised$amount ~ party, cex.axis = .6, horizontal = TRUE ,data = cdebt_revised,
+main = "Debt amount by party", col = colorBAPalette, xlab = "Debt amounts")
 ```
 
-Next we would look at the relationship between the office sought by the candidate and the amount of debt incurred or order placed
+### Amount by Office
 
-### Examine the relationships between Office and Debt Amount
+Turning our attention to the relationship between office and debt amount, 
+we see that state representatives filed 4x the amount filed by the second 
+and third-highest offices (county commissioner and state senator, respectively).
 
-```{r amount_sum_office}
-amount_sum_office = tapply(cdebt_revised$amount, cdebt_revised$office, FUN=sum )
-(amount_sumK_office = amount_sum_office/1000)
-
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,2,0.8))
-
-barplot(amount_sumK_office[order(amount_sumK_office)], horiz = TRUE , las = 1, main ="Total Debt by Office" , xlab="Total Debt in K $" ,cex.axis = .8 ,cex.names= 0.6 , col = terrain.colors(16) , xlim = c(0, 800))
+```{r amount_total_office}
+amount_sum_office = tapply(cdebt_revised$amount, cdebt_revised$office, FUN=sum)
+options(scipen=5)
+(amount_sumK_office = amount_sum_office)
+# Still suggest having /1000 for easy reading and setting xlim
 ```
 
-To better assess this relationship, we will plot the mean amount for each party.  We can use a by statement to get the means.
+```{r totalAmountVsOffice}
+par(las=1, mar=c(5,10,2,0.8)) #Sets outside margins : b, l, t, r 
+barplot(amount_sumK_office[order(amount_sumK_office)], horiz = TRUE , las = 1, main ="Total Debt Amount by Office" , xlab="Total debt amount" ,cex.axis = .8 ,cex.names= 0.6 , col = terrain.colors(16) , xlim=c(0, 800000) )
+```
+
+Comparing with mean values as before paints an entirely different picture: 
+We see that appeals court judges appear to have relatively high debt on an individual basis, 
+and state representatives drop toward the lower end of the scale. 
+
+```{r meanAmount_office}
+amount_means_office = by(cdebt_revised$amount, cdebt_revised$office,  mean, na.rm = TRUE)
+amount_means_office[order(amount_means_office, decreasing = TRUE)]
+```
 
 ```{r meanAmountVsOffice}
+par(las=1, mar=c(5,10,6,0.8)) #Sets outside margins : b, l, t, r 
 
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(5,10,6,0.8))
+barplot(amount_means_office[order(amount_means_office)], horiz = TRUE , las = 1, main ="Mean Debt Amount by Office" , xlab="Mean debt amount" ,cex.axis = .9 ,cex.names= 0.5 , col = terrain.colors(16), xlim = c(0, 4000)) 
+```
 
-(amount_means_office = by(cdebt_revised$amount, cdebt_revised$office,  mean, na.rm = TRUE))
+A boxplot again reveals considerable positive skew for all offices excepting appeals court judges, 
+which had no outliers but still exhibited substantial positive skew. 
+Furthermore, the median was around 300 for all offices except appeals court judges, which had a median of nearly 10x this value. 
 
-barplot(amount_means_office[order(amount_means_office)], horiz = TRUE , las = 1, main ="Mean Debt by Office" , xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.5 , col = terrain.colors(16), xlim = c(0, 4000)) 
+```{r amount_medians_Office}
+amount_medians_office = by(cdebt_revised$amount, cdebt_revised$office, median, na.rm = TRUE)
+amount_medians_office[order(amount_medians_office, decreasing = TRUE)]
+```
+
+```{r medianAmountVsOffice}
+par(las=1, mar=c(3,10,2,0.3)) #Sets outside margins : b, l, t, r 
+boxplot(cdebt_revised$amount ~ office, data = cdebt_revised, cex.axis = .6, horizontal = TRUE ,
+main = "Debt Amount by Office" , las=2 , col = "#DDA266")
 
 ```
 
-```{r amountVsOffice}
+### Amount by Description
 
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(3,10,2,0.3))
+```{r amount_mean_Description}
 
-# Amount vs Office
-boxplot(cdebt_revised$amount ~ office, data = cdebt_revised, cex.axis = .6, log='x', horizontal = TRUE ,
-main = "Amount wrt to 'office' Variable" , las=2 , col = "#DDA266")
+amount_means_description = by(cdebt_revised$amount, cdebt_revised$description,  mean, na.rm = TRUE)
+sortedMeans = amount_means_description[order(amount_means_description, decreasing = TRUE)]
+sortedMeans[15:1]
+```
 
-# (candidate_party_office_amount) vs office
-#boxplot(x ~ office, data = amount_office_party_filer, cex.axis = .6, log='x', horizontal = TRUE ,
-#main = "Total Candidate Debt Amount grouped by office&party vs Office" , las=2 , col = "#009E73")
+```{r meanAmountVsDescription}
+par(las=1, mar=c(3,12,2,1))#Sets outside margins : b, l, t, r 
 
-# Divya to jason/steve : understand the aggregations but cant understand the boxplot comparisions
-# Please write up ur observations, I might understand once i read thru
+barplot(sortedMeans[15:1], horiz = TRUE , las = 1, main ="Mean Debt by Office" , xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.4 , col = terrain.colors(16), xlim = c(0, 20000)) 
+```
 
-#ggplot(cdebt_revised, aes(x=cdebt_revised$amount, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
+Median for Consulting is pulled away from the mean which indicates that the distribution is negatively skewed
 
+```{r amount_median_Description}
+amount_median_description = by(cdebt_revised$amount, cdebt_revised$description,  median, na.rm = TRUE)
+sortedMedian = amount_median_description[order(amount_median_description, decreasing = TRUE)]
+sortedMedian[15:1]
 ```
 
 
-```{r}
-summary(cdebt_revised$amount)
-```
-
-1. We noticed though state representative has more number of debts , but
-   the total amount is between $5 to $1000 with the maximum debt amount between $300 and $750 
-   in the interquartile region
-
-2. Median of the debt amount is at $300 as confirmed by the boxplots
-
-3. The boxplots indicate that the debt amounts are almost around the same interquartile region
-   which means that the debt amount for all the candidates are in the same range irrespective of their served offices 
-
-### Examine the relationships between description of the debt and the Amount
-
-```{r amountVsDesc}
-
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(3,10,2,0.3))
-
-boxplot(cdebt_revised$amount ~ description, data = cdebt_revised, cex.axis = .6, log='x', horizontal = TRUE ,
-main = " Debt distirbution wrt to Description" , las=2 , col = "#009E73")
-
-#ggplot(cdebt_revised, aes(x=cdebt_revised$amount, y=cdebt_revised$was_office)) + geom_boxplot(outlier.colour="red")
+```{r medianAmountVsDesc}
+par(las=1, mar=c(3,12,2,1))#Sets outside margins : b, l, t, r 
+barplot(sortedMedian[15:1], horiz = TRUE , las = 1, main ="Median Debt by Office" , xlab="Mean Debt in $" ,cex.axis = .9 ,cex.names= 0.4 , col = terrain.colors(16), xlim = c(0, 20000)) 
 
 ```
+### Amount, Office, and Party
 
-#### Examine the relationships between amount vs office vs party
+The below plot is an aggregate of Amount by Office and Party.
+This plot shows that Candidates the same office but from different parties have different 
+average amount of debts
+For instance : State representative from Democrats has average debt of 1710 $ where as 
+               State rep from Republicans has average debt of 443 $
+Another ex   : State Senator from Non Partisans have average debt of  2624 $ whereas
+               State Senator from Democrats have average debt of 1623$
+               which contadricts the fact that average amount by Office.
 
 ```{r amountVsofficeVsParty}
-
-#Sets outside margins : b, l, t, r 
-par(las=1, mar=c(3,10,2,0.3))
 
 amount_office_party <- aggregate(x = cdebt_revised$amount, by = cdebt_revised[c("office", "party")], FUN = mean, na.rm=TRUE)
 amount_office_party
 
+#Sets outside margins : b, l, t, r 
+par(las=1, mar=c(3,10,2,0.3))
+
 ggplot(data=amount_office_party, aes(x=party, y=x, fill=office)) +
     geom_bar(stat="identity", position=position_dodge())
-
-# Divya to jason/steve This is filer aggregations , Dont get this one as well
-#ggplot(data=amount_office_party_filer, aes(x=party, y=x, fill=office)) +
-#    geom_bar(stat="identity", position=position_dodge())
-
 
 ```
 
@@ -465,4 +487,22 @@ ggplot(data=amount_office_party, aes(x=party, y=x, fill=office)) +
    multiple entries
 
 ## Conclusion: Summarize your exploratory analysis. What can you conclude based on your analysis?
+
+1) Real-World Data is very messy and can be influenced by:
+
+* data collection processes
+* metadata/data dictionary completeness
+* willful instructor sabotage
+* formatting for an audience/medium
+* encoding techniques
+* real-life scenarios (candidates changing their minds)
+* analysis of originally unintended scenarios
+
+2) Real-World Data Analysis is more meaningful if you apply domain knowledge 
+  to the data set and use whatever sources you have at your disposal (internet, industry knowledge, etc...) 
+  to understand what you are seeing; a good example is the inordinately large number of candidates
+  that seemed to switch parties between Democrat and Republican. This happens in real-life,
+  but based on anecdotal evidence (domain kknowledge) it doesn't happen very often. 
+  So when it seems like it is happening more than expected, digging in to understand what is 
+  really happening is critical. (eg., Gayle Hickey Tee-Shirt Re-orders are all Republican)
 
